@@ -767,8 +767,60 @@ export default function GetStartedPage() {
           )}
 
           {bottomTab === "Tutorials" && (
-            <div className="mx-auto flex w-full items-center justify-center py-16" style={{ maxWidth: 1200 }}>
-              <span className="text-[14px]" style={{ color: "#737373" }}>Tutorials coming soon</span>
+            <div className="mx-auto flex w-full gap-6" style={{ maxWidth: 1200 }}>
+              {[
+                {
+                  tag: "Image",
+                  tagBg: "rgba(131,115,255,0.15)",
+                  tagColor: "#8373ff",
+                  title: "Getting started with AI image generation",
+                  image: "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=400&h=300&fit=crop",
+                },
+                {
+                  tag: "Spaces",
+                  tagBg: "rgba(192,129,222,0.15)",
+                  tagColor: "#c081de",
+                  title: "Building creative workflows in Spaces",
+                  image: "https://images.unsplash.com/photo-1561998338-13ad7883b20f?w=400&h=300&fit=crop",
+                },
+                {
+                  tag: "Image",
+                  tagBg: "rgba(131,115,255,0.15)",
+                  tagColor: "#8373ff",
+                  title: "Prompt engineering for stunning results",
+                  image: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=300&fit=crop",
+                },
+              ].map((tut) => (
+                <div
+                  key={tut.title}
+                  className="flex min-w-0 flex-1 cursor-pointer gap-3 overflow-hidden rounded-xl p-4 transition-colors hover:bg-white/5"
+                  style={{ background: "#1a1a1a" }}
+                >
+                  <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
+                    <span
+                      className="w-fit rounded-md px-2.5 py-1 text-[12px] font-medium leading-none"
+                      style={{ background: tut.tagBg, color: tut.tagColor }}
+                    >
+                      {tut.tag}
+                    </span>
+                    <h3
+                      className="text-[16px] font-bold leading-[1.2]"
+                      style={{ color: "#e3e3e3", fontFamily: "var(--font-sans)" }}
+                    >
+                      {tut.title}
+                    </h3>
+                  </div>
+                  <div className="relative size-40 shrink-0 overflow-hidden rounded-lg">
+                    <NextImage src={tut.image} alt={tut.title} fill unoptimized className="object-cover" />
+                    {/* Play button */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="flex size-10 items-center justify-center rounded-full" style={{ background: "rgba(0,0,0,0.5)" }}>
+                        <svg width="14" height="16" viewBox="0 0 14 16" fill="none"><path d="M13 7.134a1 1 0 010 1.732l-11.5 6.64A1 1 0 010 14.64V1.36A1 1 0 011.5.494L13 7.134z" fill="white"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
