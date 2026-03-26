@@ -19,8 +19,69 @@ import {
   CaretDown,
   PencilSimple,
   FolderSimple,
+  Sparkle,
+  Image as ImageIcon,
+  VideoCamera,
+  Waveform,
+  TreeStructure,
 } from "@phosphor-icons/react";
 
+// Empty project state matching Figma node 8547:36130
+function EmptyProjectState({ onCreateClick }: { onCreateClick: () => void }) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const router = useRouter();
+
+  const createOptions = [
+    { label: "Image", icon: ImageIcon, color: "rgba(131,115,255,0.15)", iconColor: "#8373ff", href: "/ai-suite" },
+    { label: "Video", icon: VideoCamera, color: "rgba(16,201,141,0.15)", iconColor: "#10c98d", href: "/video" },
+    { label: "Audio", icon: Waveform, color: "rgba(121,209,219,0.15)", iconColor: "#79d1db", href: "/audio" },
+    { label: "Space", icon: TreeStructure, color: "rgba(192,129,222,0.15)", iconColor: "#c081de", href: "/spaces/new" },
+  ];
+
+  return (
+    <div className="flex flex-col items-center justify-center py-32">
+      <Sparkle weight="fill" size={48} style={{ color: "#737373" }} />
+      <h3 className="mt-4 text-[20px] font-medium" style={{ color: "#f5f5f5" }}>
+        Start Creating
+      </h3>
+      <p className="mt-2 text-center text-[14px]" style={{ color: "#737373" }}>
+        Create new content or add files to begin organizing your work.
+      </p>
+      <div className="relative mt-6">
+        <button
+          type="button"
+          onClick={() => setDropdownOpen((v) => !v)}
+          className="flex h-10 items-center gap-2 rounded-lg border px-5 text-[14px] font-medium transition-colors hover:bg-white/5"
+          style={{ borderColor: "rgba(255,255,255,0.15)", color: "#f5f5f5" }}
+        >
+          <Sparkle weight="fill" size={14} />
+          Create
+        </button>
+        {dropdownOpen && (
+          <div
+            className="absolute left-0 top-full z-50 mt-2 flex w-[160px] flex-col overflow-hidden rounded-xl border p-1.5 shadow-lg"
+            style={{ background: "var(--surface-modal)", borderColor: "rgba(255,255,255,0.05)" }}
+          >
+            {createOptions.map((opt) => (
+              <button
+                key={opt.label}
+                type="button"
+                onClick={() => { setDropdownOpen(false); router.push(opt.href); }}
+                className="flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-left text-[13px] transition-colors hover:bg-white/5"
+                style={{ color: "#f5f5f5" }}
+              >
+                <div className="flex size-5 items-center justify-center rounded" style={{ background: opt.color }}>
+                  <opt.icon weight="bold" size={12} style={{ color: opt.iconColor }} />
+                </div>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // Folder Card Component - matches Figma design (node 8889:51500)
 function FolderCard({ name, assets, thumbnails, projectName, onDrop: onDropProp }: { name: string; assets: number; thumbnails: string[]; projectName?: string; onDrop?: (assetId: string, assetSrc: string, fromProject: string, fromFolder: string) => void }) {
@@ -266,7 +327,8 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
   // Get assets for this project/folder from shared data, accounting for moves
   const assets = useMemo(() => {
     if (!projectName) return [];
-    const baseAssets = getProjectAssets(projectName, currentFolderName);
+    // If project has no static path (newly created), start with empty array
+    const baseAssets = projectPath ? getProjectAssets(projectName, currentFolderName) : [];
     // Filter out assets that have been moved away from this location
     const remaining = baseAssets.filter(asset => {
       const moved = movedAssets[asset.id];
@@ -419,30 +481,7 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
   if (isEmptyProject) {
     return (
       <ProjectsLayout title={project.name} projectDetailHeader>
-        <div className="flex flex-col items-center justify-center py-32">
-          <FolderSimple weight="thin" size={48} style={{ color: "#737373" }} />
-          <h3
-            className="mt-4 text-[20px] font-medium"
-            style={{ color: "#f5f5f5" }}
-          >
-            Start organizing
-          </h3>
-          <p
-            className="mt-2 text-center text-[14px]"
-            style={{ color: "#737373" }}
-          >
-            Create folders and start adding assets to your project
-          </p>
-          <button
-            type="button"
-            onClick={() => createModal?.open()}
-            className="mt-6 flex h-10 items-center gap-2 rounded-lg px-5 text-[14px] font-medium text-white transition-colors hover:opacity-90"
-            style={{ background: project.color || "#336aea" }}
-          >
-            <Plus weight="bold" size={14} />
-            Start creating
-          </button>
-        </div>
+        <EmptyProjectState onCreateClick={() => createModal?.open()} />
       </ProjectsLayout>
     );
   }
