@@ -181,6 +181,52 @@ function FilteredAssets({ assets, projectPath, altText, projectName, folderName 
   );
 }
 
+// Spaces section that respects favoritesOnly filter
+function FilteredSpaces({ spaces, spacesExpanded, setSpacesExpanded, projectName }: {
+  spaces: { id: string; name: string; editedAt: string; thumbnails: string[] }[];
+  spacesExpanded: boolean;
+  setSpacesExpanded: (fn: (v: boolean) => boolean) => void;
+  projectName: string;
+}) {
+  const { favoritesOnly } = useProjectsFilter();
+  const filtered = useMemo(() => {
+    if (!favoritesOnly) return spaces;
+    return spaces.filter((s) => allSpaces.find((as) => as.id === s.id)?.isFavorite);
+  }, [spaces, favoritesOnly]);
+
+  if (filtered.length === 0 && !favoritesOnly) return null;
+  if (filtered.length === 0 && favoritesOnly) return null;
+
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => setSpacesExpanded((v) => !v)}
+        className="mb-4 flex cursor-pointer items-center gap-2"
+      >
+        <span className="text-[14px] font-medium text-fg">Spaces</span>
+        <span className="text-[13px] text-fg/50">({filtered.length})</span>
+        <CaretDown weight="bold" size={12} className={`text-fg/50 transition-transform ${spacesExpanded ? "" : "-rotate-90"}`} />
+      </button>
+      {spacesExpanded && (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+          {filtered.map((space) => (
+            <SpaceCard
+              key={space.id}
+              spaceId={space.id}
+              projectName={projectName}
+              name={space.name}
+              editedAt={space.editedAt}
+              thumbnails={space.thumbnails}
+              isFavorite={allSpaces.find((s) => s.id === space.id)?.isFavorite}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 // Main page component wrapped with Suspense for useSearchParams
 export default function ProjectDetailPage({ params }: { params: Promise<{ projectId: string }> }) {
   return (
@@ -398,34 +444,7 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
         </section>
 
         {/* Spaces Section */}
-        {spaces.length > 0 && (
-          <section>
-            <button
-              type="button"
-              onClick={() => setSpacesExpanded((v) => !v)}
-              className="mb-4 flex cursor-pointer items-center gap-2"
-            >
-              <span className="text-[14px] font-medium text-fg">Spaces</span>
-              <span className="text-[13px] text-fg/50">({spaces.length})</span>
-              <CaretDown weight="bold" size={12} className={`text-fg/50 transition-transform ${spacesExpanded ? "" : "-rotate-90"}`} />
-            </button>
-            {spacesExpanded && (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
-                {spaces.map((space) => (
-                  <SpaceCard
-                    key={space.id}
-                    spaceId={space.id}
-                    projectName={projectName}
-                    name={space.name}
-                    editedAt={space.editedAt}
-                    thumbnails={space.thumbnails}
-                    isFavorite={allSpaces.find(s => s.id === space.id)?.isFavorite}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        )}
+        <FilteredSpaces spaces={spaces} spacesExpanded={spacesExpanded} setSpacesExpanded={setSpacesExpanded} projectName={projectName} />
 
         {/* Assets Section — drop zone */}
         <section
