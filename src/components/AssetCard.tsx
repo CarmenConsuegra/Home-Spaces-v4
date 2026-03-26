@@ -92,6 +92,7 @@ export function AssetCard({
             src={src}
             alt={alt}
             fill
+            draggable={false}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>

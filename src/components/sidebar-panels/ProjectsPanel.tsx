@@ -310,6 +310,7 @@ function FolderItem({
         ) : hasChildren && atMaxDepth ? (
           <Link
             href={`/projects/${projectSlug}`}
+            draggable={false}
             className="flex shrink-0 cursor-pointer items-center justify-center rounded transition-colors -ml-1 opacity-40 hover:opacity-80"
             aria-label="Open in project view"
           >
@@ -322,6 +323,7 @@ function FolderItem({
         {/* Folder link */}
         <Link
           href={folderHref}
+          draggable={false}
           onClick={(e) => { e.preventDefault(); router.push(folderHref); }}
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-1 pr-1"
         >
@@ -480,12 +482,13 @@ function ProjectRow({
         </button>
         <Link
           href={`/projects/${projectSlug}`}
+          draggable={false}
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg py-1 pr-1 text-left"
           style={{ color: "inherit" }}
         >
           {project.cover ? (
             <div className="size-3.5 shrink-0 overflow-hidden rounded" style={{ borderRadius: "4px" }}>
-              <Image src={project.cover} alt={project.name} width={14} height={14} unoptimized className="size-full object-cover" />
+              <Image src={project.cover} alt={project.name} width={14} height={14} unoptimized draggable={false} className="size-full object-cover" />
             </div>
           ) : (
             <span className="size-3.5 shrink-0 rounded" style={{ background: project.color, borderRadius: "4px" }} />
