@@ -532,9 +532,7 @@ export function Sidebar() {
         style={{ borderColor: "var(--surface-border-alpha-0)", width: "72px", minWidth: "72px", background: sc.sidebar }}
       >
         <Link href="/home" className={`mb-4 flex shrink-0 items-center justify-center ${iconBtn}`} style={{ color: "var(--surface-foreground-0)" }}>
-          <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Logo">
-            <path d="M38.4004 9L32 24.8618L25.6029 9H12.8021L0.00135586 55C-0.170227 55 16.0007 55 16.0007 55L32 34.3783L47.9993 55C47.9993 55 64.1702 55 63.9986 55L51.2011 9H38.4004Z" fill="currentColor"/>
-          </svg>
+          <img src="/freepik-logo.png" alt="Freepik" width={28} height={28} className="shrink-0" />
         </Link>
 
         <Tooltip content="Create new" side="right">

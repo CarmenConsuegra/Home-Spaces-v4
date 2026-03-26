@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import NextImage from "next/image";
 import localFont from "next/font/local";
 import { usePalette } from "@/contexts/PaletteContext";
 
@@ -40,6 +41,9 @@ import {
   LockSimple,
   Folders,
   UsersThree,
+  Lock,
+  PushPin,
+  Users,
 } from "@phosphor-icons/react";
 import { AssistantButton } from "@/components/AssistantButton";
 import { AvatarWithProgress } from "@/components/AvatarWithProgress";
@@ -47,6 +51,13 @@ import { FreepikButton } from "@/components/FreepikButton";
 import { Tooltip } from "@/components/Tooltip";
 import { ProjectFolderBreadcrumb } from "@/components/ProjectFolderBreadcrumb";
 import { projects } from "@/contexts/FolderContext";
+import { useSpotlight } from "@/contexts/SpotlightContext";
+import { SpaceCard } from "@/components/SpaceCard";
+import { ProjectCard, NewProjectCard } from "@/components/ProjectCard";
+import { AssetCard } from "@/components/AssetCard";
+import { allSpaces } from "@/data/spaces";
+import { getProjectAssets } from "@/data/projectAssets";
+import { useRouter } from "next/navigation";
 
 
 
@@ -59,12 +70,7 @@ const recentRowImages = [
 
 const filterTabs = [
   { label: "For you", icon: Heart },
-  { label: "Apps", icon: GridFour },
-  { label: "Templates", icon: Layout },
-];
-const secondaryTabs = [
-  { label: "Projects", icon: Folders },
-  { label: "Recents", icon: ClockCounterClockwise },
+  { label: "Recent work", icon: ClockCounterClockwise },
 ];
 
 const modelCategories = [
@@ -355,7 +361,201 @@ function ScrollRow({ title, templates }: { title: string; templates: { id: strin
   );
 }
 
+// Sort spaces most recent first
+function parseDaysAgo(s: string): number {
+  const m = s.match(/(\d+)\s+days?\s+ago/);
+  return m ? parseInt(m[1], 10) : 999;
+}
+
+// Hook: how many 124px cards fit in a container, always reserving space for the CTA
+function useFitCards(cardSize: number, gap: number, maxCards: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [count, setCount] = useState(maxCards);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const calc = () => {
+      const w = el.offsetWidth;
+      // CTA always takes cardSize, so available = w - cardSize - gap (for the gap before CTA)
+      const available = w - cardSize - gap;
+      const fits = Math.max(0, Math.floor((available + gap) / (cardSize + gap)));
+      setCount(Math.min(fits, maxCards));
+    };
+    calc();
+    const ro = new ResizeObserver(calc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [cardSize, gap, maxCards]);
+
+  return [ref, count] as const;
+}
+
+function ThumbCard({ href, coverSrc, name, date, badges }: {
+  href: string;
+  coverSrc: string;
+  name: string;
+  date: string;
+  badges: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group relative shrink-0 cursor-pointer overflow-hidden rounded-xl block"
+      style={{ width: 124, height: 124 }}
+    >
+      <NextImage src={coverSrc} alt={name} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-105" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+      {badges}
+      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
+        <span className="truncate text-[12px] font-semibold text-white">{name}</span>
+        <span className="text-[10px] tracking-wide text-white/80">{date}</span>
+      </div>
+    </Link>
+  );
+}
+
+function NewCardCTA({ label, onClick }: { label: string; onClick?: () => void }) {
+  return (
+    <div
+      className="flex shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 overflow-hidden rounded-lg transition-colors hover:bg-[#333]"
+      style={{ width: 124, height: 124, background: "#2b2b2b" }}
+      onClick={onClick}
+    >
+      <div className="flex size-6 items-center justify-center rounded-md bg-white">
+        <Plus weight="bold" size={12} className="text-[#1a1a1a]" />
+      </div>
+      <span className="text-[12px] font-medium text-fg/80">{label}</span>
+    </div>
+  );
+}
+
+function RecentWorkTab() {
+  const router = useRouter();
+  const sortedSpaces = [...allSpaces].sort((a, b) => parseDaysAgo(a.editedAt) - parseDaysAgo(b.editedAt));
+  const recentAssets = getProjectAssets("").slice(0, 14);
+
+  const [projectsRef, visibleProjects] = useFitCards(124, 16, projects.length);
+  const [spacesRef, visibleSpaces] = useFitCards(124, 16, sortedSpaces.length);
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Top row: Projects + Spaces side by side */}
+      <div className="flex gap-4">
+        {/* Projects card */}
+        <section
+          className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
+          style={{ background: "var(--surface-1)" }}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-medium text-fg">Projects</span>
+            <button
+              type="button"
+              className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60"
+            >
+              <Plus weight="regular" size={12} />
+            </button>
+          </div>
+          <div ref={projectsRef} className="flex gap-4">
+            {projects.slice(0, visibleProjects).map((p) => (
+              <ThumbCard
+                key={p.name}
+                href={`/projects/${p.name.toLowerCase().replace(/\s+/g, "-")}`}
+                coverSrc={p.cover || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop"}
+                name={p.name}
+                date="Edited 2 days ago"
+                badges={
+                  <div className="absolute left-3 top-3 flex items-center gap-1">
+                    <div className="flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
+                      {p.isTeam ? <Users weight="fill" size={12} className="text-white" /> : <Lock weight="fill" size={12} className="text-white" />}
+                    </div>
+                    <div className="flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
+                      <PushPin weight="fill" size={12} className="text-white" />
+                    </div>
+                  </div>
+                }
+              />
+            ))}
+            <NewCardCTA label="New project" />
+          </div>
+          <Link href="/projects/all-projects" className="text-[12px] font-medium transition-colors hover:text-fg/60" style={{ color: "#353535" }}>
+            View all
+          </Link>
+        </section>
+
+        {/* Spaces card */}
+        <section
+          className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
+          style={{ background: "var(--surface-1)" }}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-medium text-fg">Spaces</span>
+            <button
+              type="button"
+              className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60"
+              onClick={() => router.push("/spaces/new")}
+            >
+              <Plus weight="regular" size={12} />
+            </button>
+          </div>
+          <div ref={spacesRef} className="flex gap-4">
+            {sortedSpaces.slice(0, visibleSpaces).map((space) => (
+              <ThumbCard
+                key={space.id}
+                href="/spaces"
+                coverSrc={space.thumbnails[0] || ""}
+                name={space.name}
+                date={space.editedAt}
+                badges={
+                  <>
+                    <div className="absolute left-3 top-3 flex items-center gap-1">
+                      <div className="flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
+                        <Lock weight="fill" size={12} className="text-white" />
+                      </div>
+                      <div className="flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
+                        <PushPin weight="fill" size={12} className="text-white" />
+                      </div>
+                    </div>
+                    {space.isFavorite && (
+                      <div className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
+                        <Heart weight="fill" size={12} className="text-white" />
+                      </div>
+                    )}
+                  </>
+                }
+              />
+            ))}
+            <NewCardCTA label="New Space" onClick={() => router.push("/spaces/new")} />
+          </div>
+          <Link href="/spaces" className="text-[12px] font-medium transition-colors hover:text-fg/60" style={{ color: "#353535" }}>
+            View all
+          </Link>
+        </section>
+      </div>
+
+      {/* Assets */}
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[14px] font-semibold text-fg">Assets</span>
+          <button
+            type="button"
+            className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60"
+          >
+            <Plus weight="bold" size={14} />
+          </button>
+        </div>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
+          {recentAssets.map((asset, i) => (
+            <AssetCard key={i} src={asset.src} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function GetStartedPage() {
+  const spotlight = useSpotlight();
   const [activeTab, setActiveTab] = useState("For you");
   const [selectedTool, setSelectedTool] = useState("Find Stock");
   const [selectedRatio, setSelectedRatio] = useState("1:1");
@@ -464,58 +664,20 @@ export default function GetStartedPage() {
             <h1 className="mb-8 text-center text-3xl font-normal tracking-normal text-fg" style={{ fontFamily: klarheit.style.fontFamily }}>
               Good morning, start creating!
             </h1>
-            <div>
             <div
-              className="flex flex-col justify-between rounded-3xl border px-5 py-5"
-              style={{ background: sc.button, minHeight: 140, borderColor: "var(--surface-border-alpha-0)" }}
+              className="flex h-12 cursor-pointer items-center gap-3 rounded-full border px-5 transition-colors hover:border-white/20"
+              style={{ borderColor: "var(--surface-border-alpha-1)" }}
+              onClick={() => spotlight?.open()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); spotlight?.open(); } }}
             >
-              <input
-                type="text"
-                placeholder={`Describe the ${selectedTool.toLowerCase()} you want to create...`}
-                className="w-full bg-transparent text-[15px] text-fg outline-none placeholder:text-fg/30"
-              />
-              <div className="flex items-center justify-between">
-                <Tooltip content="Add references" side="top">
-                  <button
-                    type="button"
-                    className="flex size-8 cursor-pointer items-center justify-center rounded-lg bg-fg/5 text-fg/70 transition-colors hover:bg-fg/10 hover:text-fg"
-                  >
-                    <Plus weight="bold" size={16} />
-                  </button>
-                </Tooltip>
-                <div className="flex items-center gap-2">
-                  <div className="relative" ref={modelSelectorRef}>
-                    <button
-                      ref={modelBtnTriggerRef}
-                      type="button"
-                      onClick={() => {
-                        if (!modelSelectorOpen) updateSelectorPos();
-                        setModelSelectorOpen(!modelSelectorOpen);
-                      }}
-                      className="relative flex h-8 cursor-pointer items-center gap-2.5 rounded-lg border border-white/15 px-4 text-xs font-medium text-fg/70 transition-colors hover:text-fg/90"
-                    >
-                      <div className="absolute -inset-px rounded-lg opacity-60" style={{ background: categoryGradients[selectedCategory] }} />
-                      {selectedTool === "Image" && <Image weight="bold" size={14} className="relative text-fg" />}
-                      {selectedTool === "Video" && <VideoCamera weight="bold" size={14} className="relative text-fg" />}
-                      {selectedTool === "3D Object" && <Cube weight="bold" size={14} className="relative text-fg" />}
-                      {selectedTool === "Voiceover" && <Microphone weight="bold" size={14} className="relative text-fg" />}
-                      {selectedTool === "Music" && <MusicNotes weight="bold" size={14} className="relative text-fg" />}
-                      {selectedTool === "Sound Effects" && <Waveform weight="bold" size={14} className="relative text-fg" />}
-                      {selectedTool === "Find Stock" && <MagnifyingGlass weight="bold" size={14} className="relative text-fg" />}
-                      <span className="relative text-fg">{selectedTool}</span>
-                      <span className="relative text-fg/40">x{generationCount}</span>
-                    </button>
-                    
-                  </div>
-                  <button
-                    type="button"
-                    className="flex size-8 cursor-pointer items-center justify-center rounded-lg bg-fg/5 text-fg/70 transition-colors hover:bg-fg/10 hover:text-fg"
-                  >
-                    <PaperPlaneRight weight="bold" size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
+              <MagnifyingGlass weight="regular" size={16} className="shrink-0 text-fg/40" />
+              <span className="flex-1 text-[15px] text-fg/30">Search projects, assets and more</span>
+              <kbd className="flex items-center gap-0.5 text-[13px] text-fg/30">
+                <span>⌘</span>
+                <span>K</span>
+              </kbd>
             </div>
           </div>
 
@@ -628,118 +790,11 @@ export default function GetStartedPage() {
                   {label}
                 </button>
               ))}
-              <div className="mx-1 h-4 w-px bg-fg/10" />
-              {secondaryTabs.map(({ label, icon: Icon }) => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => setActiveTab(label)}
-                  className="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors"
-                  style={{
-                    background: activeTab === label ? sc.button : "transparent",
-                    color: activeTab === label ? "var(--surface-foreground-0)" : "var(--surface-foreground-2)",
-                  }}
-                >
-                  <Icon weight="bold" size={14} />
-                  {label}
-                </button>
-              ))}
             </div>
-            {activeTab === "Recents" && (
-              <div className="flex items-center gap-1.5">
-                <ProjectFolderBreadcrumb />
-                <div className="mx-1 h-4 w-px" style={{ background: "var(--surface-border-alpha-0)" }} />
-                <div className="flex items-center rounded-lg" style={{ background: sc.button }}>
-                  {[
-                    { icon: Image, label: "Images" },
-                    { icon: VideoCamera, label: "Videos" },
-                    { icon: Waveform, label: "Audio" },
-                    { icon: Cube, label: "3D" },
-                  ].map(({ icon: Icon, label }) => (
-                    <button
-                      key={label}
-                      type="button"
-                      className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-fg/5"
-                      style={{ color: "var(--surface-foreground-2)" }}
-                    >
-                      <Icon weight="bold" size={16} />
-                    </button>
-                  ))}
-                </div>
-                <button type="button" className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-fg/5" style={{ background: sc.button, color: "var(--surface-foreground-2)" }}>
-                  <Heart weight="bold" size={16} />
-                </button>
-                <button type="button" className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-fg/5" style={{ background: sc.button, color: "var(--surface-foreground-2)" }}>
-                  <GridFour weight="bold" size={16} />
-                </button>
-                <button type="button" className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-fg/5" style={{ background: sc.button, color: "var(--surface-foreground-2)" }}>
-                  <MagnifyingGlass weight="bold" size={16} />
-                </button>
-              </div>
-            )}
           </div>
 
-          {activeTab === "Projects" ? (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
-              <button
-                type="button"
-                className="group flex cursor-pointer flex-col overflow-hidden rounded-xl"
-              >
-                <div className="relative w-full overflow-hidden rounded-xl" style={{ background: "#2A2A2A" }}>
-                  <div className="mx-3 mt-3 flex items-center justify-center overflow-hidden rounded-xl bg-white/5" style={{ aspectRatio: "16/9" }}>
-                    <Plus weight="bold" size={24} className="text-fg-muted" />
-                  </div>
-                  <div className="px-3 py-2.5">
-                    <span className="text-sm font-semibold text-fg">New project</span>
-                  </div>
-                  <div className="absolute inset-0 rounded-xl bg-white/0 transition-colors group-hover:bg-white/5" />
-                </div>
-              </button>
-              {projects.map((project) => (
-                <button
-                  key={project.name}
-                  type="button"
-                  className="group flex cursor-pointer flex-col overflow-hidden rounded-xl"
-                >
-                  <div className="relative w-full overflow-hidden rounded-xl" style={{ background: "#2A2A2A" }}>
-                    {project.cover && (
-                      <div className="mx-3 mt-3 overflow-hidden rounded-xl" style={{ aspectRatio: "16/9" }}>
-                        <img src={project.cover} alt="" className="h-full w-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between px-3 py-2.5">
-                      <span className="text-sm font-semibold text-fg">{project.name}</span>
-                      <div className="text-fg-muted" style={{ opacity: 0.4 }}>
-                        {project.isTeam ? <UsersThree weight="bold" size={14} /> : <LockSimple weight="bold" size={14} />}
-                      </div>
-                    </div>
-                    <div className="absolute inset-0 rounded-xl bg-white/0 transition-colors group-hover:bg-white/5" />
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : activeTab === "Recents" ? (
-            <div className="flex flex-col gap-3">
-              {recentRowImages.map((src, rowIdx) => (
-                <div key={rowIdx} className="grid grid-cols-5 gap-3">
-                  {Array.from({ length: 5 }, (_, colIdx) => (
-                    <div
-                      key={colIdx}
-                      className="group relative cursor-pointer overflow-hidden rounded-xl"
-                    >
-                      <img
-                        src={src}
-                        alt=""
-                        loading="lazy"
-                        className="block w-full rounded-xl object-cover"
-                        style={{ aspectRatio: "1" }}
-                      />
-                      <div className="absolute inset-0 rounded-xl bg-black/0 transition-colors duration-200 group-hover:bg-black/30" />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+          {activeTab === "Recent work" ? (
+            <RecentWorkTab />
           ) : (
           <>
           {/* Hero */}
