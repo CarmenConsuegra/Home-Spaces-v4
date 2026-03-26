@@ -45,6 +45,7 @@ import { AvatarWithProgress } from "@/components/AvatarWithProgress";
 import { FreepikButton } from "@/components/FreepikButton";
 import { usePalette } from "@/contexts/PaletteContext";
 import { useCreateModal } from "@/contexts/CreateModalContext";
+import { useNewProjectModal } from "@/contexts/NewProjectModalContext";
 
 
 
@@ -168,6 +169,7 @@ export function ProjectsLayout(props: { title: string; children?: ReactNode; sim
 
 function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHeader = false, projectDetailHeader = false, assetsHeader = false, hideFavoritesFilter = false }: { title: string; children?: ReactNode; simpleHeader?: boolean; projectsHeader?: boolean; projectDetailHeader?: boolean; assetsHeader?: boolean; hideFavoritesFilter?: boolean }) {
   const createModal = useCreateModal();
+  const newProjectModal = useNewProjectModal();
   const [visibilityFilter, setVisibilityFilter] = useState<"All" | "Shared" | "Private">("All");
   const [ownerDropdownOpen, setOwnerDropdownOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
@@ -446,6 +448,7 @@ function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHe
               <Tooltip content="New project" side="left">
                 <button
                   type="button"
+                  onClick={() => newProjectModal?.open()}
                   className={`flex shrink-0 cursor-pointer items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-fg/10 hover:text-fg ${iconBtn}`}
                   aria-label="Add project"
                 >
