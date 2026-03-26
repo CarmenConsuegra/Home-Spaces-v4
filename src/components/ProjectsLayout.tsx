@@ -179,7 +179,7 @@ function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHe
   const router = useRouter();
   const searchParams = useSearchParams();
   const { surfaceColors: sc } = usePalette();
-  const { projects } = useFolder();
+  const { projects, selectProject } = useFolder();
 
   // Project context menu state for the detail header
   const [projectMenuOpen, setProjectMenuOpen] = useState<{ rect: { top: number; left: number } } | null>(null);
@@ -550,7 +550,7 @@ function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHe
               {(simpleHeader || projectDetailHeader) && (
                 <button
                   type="button"
-                  onClick={() => createModal?.open()}
+                  onClick={() => { if (currentProject) selectProject(currentProject, ""); createModal?.open(); }}
                   className="flex h-8 items-center gap-2 rounded-lg px-4 text-[12px] font-medium text-fg transition-colors hover:opacity-90"
                   style={{ background: sc.button }}
                 >
