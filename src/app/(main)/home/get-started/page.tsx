@@ -589,7 +589,7 @@ export default function GetStartedPage() {
           </div>
 
           {/* Tools row — single line of 6, pixel-perfect from Figma */}
-          <div className="mx-auto flex w-full gap-4" style={{ maxWidth: 1200 }}>
+          <div className="mx-auto flex w-full gap-4 pt-10" style={{ maxWidth: 1200 }}>
             {[
               { label: "Create a Space", icon: "/icons/tool-spaces.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(192,129,222,0.1)", href: "/spaces" },
               { label: "Generate Image", icon: "/icons/tool-image.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(131,115,255,0.1)", href: "/ai-suite" },
