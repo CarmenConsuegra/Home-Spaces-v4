@@ -198,6 +198,9 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
   const createModal = useCreateModal();
   const { projects, movedAssets, moveAsset } = useFolder();
   const [isDragOverRoot, setIsDragOverRoot] = useState(false);
+  const [foldersExpanded, setFoldersExpanded] = useState(true);
+  const [spacesExpanded, setSpacesExpanded] = useState(true);
+  const [assetsExpanded, setAssetsExpanded] = useState(true);
   
   // Get folder from URL query param
   const currentFolderName = searchParams.get("folder") || "";
@@ -368,47 +371,59 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
       <div className="flex flex-col gap-8">
         {/* Folders Section */}
         <section>
-          <div className="mb-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setFoldersExpanded((v) => !v)}
+            className="mb-4 flex cursor-pointer items-center gap-2"
+          >
             <span className="text-[14px] font-medium text-fg">Folders</span>
             <span className="text-[13px] text-fg/50">({project.folders.length})</span>
-            <CaretDown weight="bold" size={12} className="text-fg/50" />
-          </div>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
-            {project.folders.map((folder) => (
-              <div key={folder.name} onClick={() => handleFolderClick(folder.name)}>
-                <FolderCard
-                  name={folder.name}
-                  assets={getFolderAssetCount(projectName, folder.name)}
-                  thumbnails={getFolderThumbnails(projectName, folder.name)}
-                  projectName={projectName}
-                  onDrop={(assetId) => handleFolderDrop(folder.name)(assetId)}
-                />
-              </div>
-            ))}
-          </div>
+            <CaretDown weight="bold" size={12} className={`text-fg/50 transition-transform ${foldersExpanded ? "" : "-rotate-90"}`} />
+          </button>
+          {foldersExpanded && (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+              {project.folders.map((folder) => (
+                <div key={folder.name} onClick={() => handleFolderClick(folder.name)}>
+                  <FolderCard
+                    name={folder.name}
+                    assets={getFolderAssetCount(projectName, folder.name)}
+                    thumbnails={getFolderThumbnails(projectName, folder.name)}
+                    projectName={projectName}
+                    onDrop={(assetId) => handleFolderDrop(folder.name)(assetId)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Spaces Section */}
         {spaces.length > 0 && (
           <section>
-            <div className="mb-4 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSpacesExpanded((v) => !v)}
+              className="mb-4 flex cursor-pointer items-center gap-2"
+            >
               <span className="text-[14px] font-medium text-fg">Spaces</span>
               <span className="text-[13px] text-fg/50">({spaces.length})</span>
-              <CaretDown weight="bold" size={12} className="text-fg/50" />
-            </div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
-              {spaces.map((space) => (
-                <SpaceCard
-                  key={space.id}
-                  spaceId={space.id}
-                  projectName={projectName}
-                  name={space.name}
-                  editedAt={space.editedAt}
-                  thumbnails={space.thumbnails}
-                  isFavorite={allSpaces.find(s => s.id === space.id)?.isFavorite}
-                />
-              ))}
-            </div>
+              <CaretDown weight="bold" size={12} className={`text-fg/50 transition-transform ${spacesExpanded ? "" : "-rotate-90"}`} />
+            </button>
+            {spacesExpanded && (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+                {spaces.map((space) => (
+                  <SpaceCard
+                    key={space.id}
+                    spaceId={space.id}
+                    projectName={projectName}
+                    name={space.name}
+                    editedAt={space.editedAt}
+                    thumbnails={space.thumbnails}
+                    isFavorite={allSpaces.find(s => s.id === space.id)?.isFavorite}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -419,12 +434,18 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
           onDrop={handleRootDrop}
           className={`rounded-xl p-2 transition-colors ${isDragOverRoot ? "bg-blue-500/10 ring-2 ring-blue-500/30" : ""}`}
         >
-          <div className="mb-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setAssetsExpanded((v) => !v)}
+            className="mb-4 flex cursor-pointer items-center gap-2"
+          >
             <span className="text-[14px] font-medium text-fg">Assets</span>
             <span className="text-[13px] text-fg/50">({assets.length})</span>
-            <CaretDown weight="bold" size={12} className="text-fg/50" />
-          </div>
-          <FilteredAssets assets={assets} projectPath={projectPath} altText={project.name} projectName={projectName} folderName="" />
+            <CaretDown weight="bold" size={12} className={`text-fg/50 transition-transform ${assetsExpanded ? "" : "-rotate-90"}`} />
+          </button>
+          {assetsExpanded && (
+            <FilteredAssets assets={assets} projectPath={projectPath} altText={project.name} projectName={projectName} folderName="" />
+          )}
         </section>
       </div>
     </ProjectsLayout>
