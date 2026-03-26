@@ -586,80 +586,30 @@ export default function GetStartedPage() {
             </div>
           </div>
 
-          {/* Tools row */}
-          <div className="group/row relative shrink-0 -mr-6 pt-10 pb-8">
-            <div className="pr-6">
-              <div className="grid justify-center gap-x-6 gap-y-2 min-[1540px]:gap-x-0.5 [grid-template-columns:repeat(3,240px)] min-[1540px]:[grid-template-columns:repeat(6,240px)]">
-              {[
-                { label: "Create a Space", icon: TreeStructure, desc: "Build creative workflows on an infinite canvas", bgColor: paletteColors.spaces.bg, iconColor: paletteColors.spaces.icon, href: "/spaces" },
-                { label: "Generate Image", icon: Image, desc: "Generate stunning images from text prompts", bgColor: paletteColors.image.bg, iconColor: paletteColors.image.icon, href: "/ai-suite" },
-                { label: "Generate Video", icon: VideoCamera, desc: "Generate cinematic video clips from text or images", bgColor: paletteColors.video.bg, iconColor: paletteColors.video.icon, href: "/video" },
-                { label: "Generate Audio", icon: Microphone, desc: "Generate natural-sounding voiceovers and music", bgColor: paletteColors.audio.bg, iconColor: paletteColors.audio.icon, href: "/audio" },
-                { label: "Generate 3D", icon: Cube, desc: "Generate 3D models from text or image input", bgColor: paletteColors["3d"].bg, iconColor: paletteColors["3d"].icon, href: "/3d" },
-                { label: "Find Stock", icon: MagnifyingGlass, desc: "Search millions of stock photos, vectors and more", bgColor: paletteColors.stock.bg, iconColor: paletteColors.stock.icon, href: "/stock" },
-              ].map(({ label, icon: Icon, desc, bgColor, iconColor, href }) => (
-                <Link
-                  key={label}
-                  href={href}
-                  className="flex w-[240px] shrink-0 cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-fg/5"
-                >
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl" style={{ background: bgColor }}>
-                    <Icon weight="bold" size={24} style={{ color: iconColor }} />
-                  </div>
-                  <div className="min-w-0 flex flex-col gap-0.5">
-                    <span className="text-sm font-medium leading-tight text-fg">{label}</span>
-                    <span className="text-[11px] leading-tight line-clamp-2" style={{ color: "var(--surface-foreground-2)" }}>{desc}</span>
-                  </div>
-                </Link>
-              ))}
-              </div>
-            </div>
-            <div
-              className="overflow-hidden transition-all duration-300 ease-in-out"
-              style={{
-                maxHeight: showAllTools ? 800 : 0,
-                opacity: showAllTools ? 1 : 0,
-              }}
-            >
-              <div className="mx-auto flex w-fit gap-0.5 pr-6 pt-6">
-                {[
-                  { category: "Spaces", color: paletteColors.spaces.icon, tools: [{ label: "New Space", icon: TreeStructure }, { label: "Templates", icon: TreeStructure }], href: "/spaces" },
-                  { category: "Image", color: paletteColors.image.icon, tools: toolCategories.find((c) => c.category === "Image")!.tools.slice(1), href: "/ai-suite" },
-                  { category: "Video", color: paletteColors.video.icon, tools: toolCategories.find((c) => c.category === "Video")!.tools.slice(1), href: "/video" },
-                  { category: "Audio", color: paletteColors.audio.icon, tools: toolCategories.find((c) => c.category === "Audio")!.tools.slice(1), href: "/audio" },
-                  { category: "3D", color: paletteColors["3d"].icon, tools: toolCategories.find((c) => c.category === "3D")!.tools.slice(1), href: "/3d" },
-                  { category: "Stock", color: paletteColors.stock.icon, tools: [{ label: "Photos", icon: Image }, { label: "Videos", icon: VideoCamera }, { label: "Audio", icon: SpeakerHigh }], href: "/stock" },
-                ].map(({ category, color, tools, href }) => (
-                  <div key={category} className="flex w-[240px] shrink-0 flex-col gap-0.5">
-                    {tools.map(({ label, icon: Icon }) => (
-                      <div key={label} className="flex h-8 items-center px-2.5">
-                        <Link
-                          href={href}
-                          className="flex cursor-pointer items-center gap-2.5 text-[13px] text-fg/60 transition-colors hover:text-fg"
-                        >
-                          <Icon weight="bold" size={14} className="shrink-0" style={{ color }} />
-                          <span className="truncate">{label}</span>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-6 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowAllTools((v) => !v)}
-                className="flex h-8 cursor-pointer items-center gap-1.5 rounded-lg px-4 text-xs font-medium text-fg/50 transition-colors hover:text-fg/80"
+          {/* Tools row — single line of 6 */}
+          <div className="flex gap-4 pt-10 pb-8">
+            {[
+              { label: "Create a Space", icon: TreeStructure, desc: "Build creative workflows on an infinite canvas", bgColor: paletteColors.spaces.bg, iconColor: paletteColors.spaces.icon, href: "/spaces" },
+              { label: "Generate Image", icon: Image, desc: "Generate stunning images from text prompts", bgColor: paletteColors.image.bg, iconColor: paletteColors.image.icon, href: "/ai-suite" },
+              { label: "Generate Video", icon: VideoCamera, desc: "Generate cinematic video clips from text or images", bgColor: paletteColors.video.bg, iconColor: paletteColors.video.icon, href: "/video" },
+              { label: "Generate Audio", icon: Microphone, desc: "Generate natural-sounding voiceovers and music", bgColor: paletteColors.audio.bg, iconColor: paletteColors.audio.icon, href: "/audio" },
+              { label: "Generate 3D", icon: Cube, desc: "Generate 3D models from text or image input", bgColor: paletteColors["3d"].bg, iconColor: paletteColors["3d"].icon, href: "/3d" },
+              { label: "Find stock", icon: MagnifyingGlass, desc: "Search millions of stock photos, vectors and more", bgColor: paletteColors.stock.bg, iconColor: paletteColors.stock.icon, href: "/stock" },
+            ].map(({ label, icon: Icon, desc, bgColor, iconColor, href }) => (
+              <Link
+                key={label}
+                href={href}
+                className="flex min-w-0 flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 transition-colors hover:bg-white/5"
               >
-                {showAllTools ? "Hide all tools" : "Show all tools"}
-                <CaretDown
-                  weight="bold"
-                  size={10}
-                  className={`shrink-0 transition-transform duration-200 ${showAllTools ? "rotate-180" : ""}`}
-                />
-              </button>
-            </div>
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-lg" style={{ background: bgColor }}>
+                  <Icon weight="bold" size={20} style={{ color: iconColor }} />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[16px] font-medium leading-[1.6] text-fg">{label}</span>
+                  <span className="text-[12px] leading-[1.6]" style={{ color: "#424242" }}>{desc}</span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
 
