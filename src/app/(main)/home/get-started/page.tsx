@@ -462,6 +462,7 @@ function RecentWorkTab() {
 
 export default function GetStartedPage() {
   const spotlight = useSpotlight();
+  const [bottomTab, setBottomTab] = useState("For you");
   const [selectedTool, setSelectedTool] = useState("Find Stock");
   const [selectedRatio, setSelectedRatio] = useState("1:1");
   const [generationCount, setGenerationCount] = useState(1);
@@ -630,11 +631,26 @@ export default function GetStartedPage() {
           {/* Projects / Spaces / Assets — 3 columns */}
           <RecentWorkTab />
 
-          {/* For you */}
-          <div className="mx-auto flex w-full items-start" style={{ maxWidth: 1200 }}>
-            <span className="text-[20px] leading-[1.5]" style={{ color: "#f5f5f5" }}>For you</span>
+          {/* Chips: For you / Templates / Tutorials */}
+          <div className="mx-auto flex w-full items-center gap-2" style={{ maxWidth: 1200 }}>
+            {["For you", "Templates", "Tutorials"].map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                onClick={() => setBottomTab(chip)}
+                className="cursor-pointer rounded-lg px-4 py-2 text-[14px] font-medium transition-colors"
+                style={{
+                  background: bottomTab === chip ? "#2b2b2b" : "transparent",
+                  color: bottomTab === chip ? "#f5f5f5" : "#737373",
+                }}
+              >
+                {chip}
+              </button>
+            ))}
           </div>
 
+          {bottomTab === "For you" && (
+          <>
           {/* Hero */}
           <div className="group/row relative -mr-6" style={{ minHeight: 200 }}>
             <ScrollArrows canScrollLeft={heroScroll.canScrollLeft} canScrollRight={heroScroll.canScrollRight} scroll={heroScroll.scroll} />
@@ -738,10 +754,23 @@ export default function GetStartedPage() {
             </div>
           </div>
 
+          </>
+          )}
+
+          {bottomTab === "Templates" && (
+          <>
           {/* Template sections */}
           {templateSections.map(({ title, templates }) => (
             <ScrollRow key={title} title={title} templates={templates} />
           ))}
+          </>
+          )}
+
+          {bottomTab === "Tutorials" && (
+            <div className="mx-auto flex w-full items-center justify-center py-16" style={{ maxWidth: 1200 }}>
+              <span className="text-[14px]" style={{ color: "#737373" }}>Tutorials coming soon</span>
+            </div>
+          )}
 
           <div className="h-6" />
         </div>
