@@ -371,7 +371,7 @@ function ListItem({ thumb, name, date, href }: { thumb?: string; name: string; d
         {thumb && <NextImage src={thumb} alt={name} width={48} height={48} unoptimized className="size-full object-cover" />}
       </div>
       <div className="flex min-w-0 flex-1 flex-col leading-[1.6]">
-        <span className="truncate text-[14px] text-fg">{name}</span>
+        <span className="truncate text-[14px]" style={{ color: "#f5f5f5" }}>{name}</span>
         <span className="text-[12px] opacity-50" style={{ color: "#737373" }}>{date}</span>
       </div>
     </Link>
@@ -383,15 +383,15 @@ function RecentWorkTab() {
   const recentAssets = getProjectAssets("").slice(0, 3);
 
   return (
-    <div className="flex gap-6">
+    <div className="mx-auto flex w-full gap-6" style={{ maxWidth: 1200 }}>
       {/* Projects */}
       <section
         className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
         style={{ background: "#1a1a1a" }}
       >
         <div className="flex items-center justify-between">
-          <span className="text-[12px] font-medium text-fg">Projects</span>
-          <button type="button" className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60">
+          <span className="text-[12px] font-medium" style={{ color: "#f5f5f5" }}>Projects</span>
+          <button type="button" className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-white/5" style={{ color: "#f5f5f5" }}>
             <Plus weight="regular" size={12} />
           </button>
         </div>
@@ -404,7 +404,7 @@ function RecentWorkTab() {
             date="Today"
           />
         ))}
-        <Link href="/projects/all-projects" className="text-[12px] font-medium transition-colors hover:text-fg/40" style={{ color: "#e3e3e3" }}>
+        <Link href="/projects/all-projects" className="text-[12px] font-medium transition-colors hover:opacity-70" style={{ color: "#e3e3e3" }}>
           View all
         </Link>
       </section>
@@ -415,8 +415,8 @@ function RecentWorkTab() {
         style={{ background: "#1a1a1a" }}
       >
         <div className="flex items-center justify-between">
-          <span className="text-[12px] font-medium text-fg">Spaces</span>
-          <button type="button" className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60">
+          <span className="text-[12px] font-medium" style={{ color: "#f5f5f5" }}>Spaces</span>
+          <button type="button" className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-white/5" style={{ color: "#f5f5f5" }}>
             <Plus weight="regular" size={12} />
           </button>
         </div>
@@ -429,7 +429,7 @@ function RecentWorkTab() {
             date={space.editedAt}
           />
         ))}
-        <Link href="/spaces" className="text-[12px] font-medium transition-colors hover:text-fg/40" style={{ color: "#e3e3e3" }}>
+        <Link href="/spaces" className="text-[12px] font-medium transition-colors hover:opacity-70" style={{ color: "#e3e3e3" }}>
           View all
         </Link>
       </section>
@@ -440,7 +440,7 @@ function RecentWorkTab() {
         style={{ background: "#1a1a1a" }}
       >
         <div className="flex items-center justify-between">
-          <span className="text-[12px] font-medium text-fg">Assets</span>
+          <span className="text-[12px] font-medium" style={{ color: "#f5f5f5" }}>Assets</span>
           <span className="size-6" />
         </div>
         {recentAssets.map((asset, i) => (
@@ -452,7 +452,7 @@ function RecentWorkTab() {
             date="Today"
           />
         ))}
-        <Link href="/projects/all-assets" className="text-[12px] font-medium transition-colors hover:text-fg/40" style={{ color: "#e3e3e3" }}>
+        <Link href="/projects/all-assets" className="text-[12px] font-medium transition-colors hover:opacity-70" style={{ color: "#e3e3e3" }}>
           View all
         </Link>
       </section>
@@ -537,7 +537,7 @@ export default function GetStartedPage() {
   return (
     <main
       className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl"
-      style={{ background: "var(--surface-modal)" }}
+      style={{ background: "#161616" }}
     >
       <header className="flex h-[60px] shrink-0 items-center justify-between px-6">
         <Breadcrumb />
@@ -565,29 +565,30 @@ export default function GetStartedPage() {
           }}
         >
           {/* Chat Box */}
-          <div className="mx-auto w-full pt-8 pb-8" style={{ maxWidth: 800 }}>
-            <h1 className="mb-8 text-center text-3xl font-normal tracking-normal text-fg" style={{ fontFamily: klarheit.style.fontFamily }}>
+          <div className="mx-auto flex w-full flex-col items-center gap-6 pt-10" style={{ maxWidth: 1200 }}>
+            <h1
+              className="text-center tracking-[-0.32px]"
+              style={{ fontFamily: klarheit.style.fontFamily, fontSize: 32, lineHeight: 1.375, color: "#f5f5f5" }}
+            >
               Good morning, start creating!
             </h1>
             <div
-              className="flex h-12 cursor-pointer items-center gap-3 rounded-full border px-5 transition-colors hover:border-white/20"
-              style={{ borderColor: "var(--surface-border-alpha-1)" }}
+              className="flex h-12 w-full cursor-pointer items-center overflow-hidden rounded-2xl border pl-1.5 pr-4"
+              style={{ maxWidth: 672, background: "#1a1a1a", borderColor: "rgba(255,255,255,0.1)" }}
               onClick={() => spotlight?.open()}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); spotlight?.open(); } }}
             >
-              <MagnifyingGlass weight="regular" size={16} className="shrink-0 text-fg/40" />
-              <span className="flex-1 text-[15px] text-fg/30">Search projects, assets and more</span>
-              <kbd className="flex items-center gap-0.5 text-[13px] text-fg/30">
-                <span>⌘</span>
-                <span>K</span>
-              </kbd>
+              <div className="flex size-10 shrink-0 items-center justify-center">
+                <MagnifyingGlass weight="regular" size={14} style={{ color: "#737373" }} />
+              </div>
+              <span className="flex-1 text-[15px]" style={{ color: "#737373" }}>Search projects, assets and more</span>
             </div>
           </div>
 
           {/* Tools row — single line of 6, pixel-perfect from Figma */}
-          <div className="flex gap-4 pt-10 pb-8">
+          <div className="mx-auto flex w-full gap-4" style={{ maxWidth: 1200 }}>
             {[
               { label: "Create a Space", icon: "/icons/tool-spaces.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(192,129,222,0.1)", href: "/spaces" },
               { label: "Generate Image", icon: "/icons/tool-image.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(131,115,255,0.1)", href: "/ai-suite" },
@@ -623,15 +624,15 @@ export default function GetStartedPage() {
         >
           <div style={{ height: topSectionHeight }} />
           <div
-            className="pointer-events-auto flex flex-col gap-4 rounded-2xl px-6 py-4"
-            style={{ background: sc.panel, minHeight: "100%" }}
+            className="pointer-events-auto flex flex-col gap-10 px-6 py-4"
+            style={{ background: "#161616", minHeight: "100%" }}
           >
           {/* Projects / Spaces / Assets — 3 columns */}
           <RecentWorkTab />
 
           {/* For you */}
-          <div className="flex items-start pt-4">
-            <span className="text-[20px] text-fg">For you</span>
+          <div className="mx-auto flex w-full items-start" style={{ maxWidth: 1200 }}>
+            <span className="text-[20px] leading-[1.5]" style={{ color: "#f5f5f5" }}>For you</span>
           </div>
 
           {/* Hero */}
