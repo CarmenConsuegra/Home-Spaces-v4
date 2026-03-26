@@ -186,6 +186,7 @@ function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHe
   const currentProject = projects.find(
     (p) => `/projects/${p.name.toLowerCase().replace(/\s+/g, "-")}` === pathname
   );
+  const currentFolder = searchParams.get("folder") || "";
 
   const [expandedMyProjects, setExpandedMyProjects] = useState<Record<string, boolean>>({
     "Short film": false,
@@ -550,7 +551,7 @@ function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHe
               {(simpleHeader || projectDetailHeader) && (
                 <button
                   type="button"
-                  onClick={() => { if (currentProject) selectProject(currentProject, ""); createModal?.open(); }}
+                  onClick={() => { if (currentProject) selectProject(currentProject, currentFolder); createModal?.open(); }}
                   className="flex h-8 items-center gap-2 rounded-lg px-4 text-[12px] font-medium text-fg transition-colors hover:opacity-90"
                   style={{ background: sc.button }}
                 >
