@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   MagnifyingGlass,
   X,
@@ -20,6 +21,7 @@ type TemplatesCategory = "featured" | "image" | "video" | "community" | "charact
 
 
 export function CreateModal({ isOpen, onClose }: CreateModalProps) {
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState<SidebarSection>("start-creating");
   const [templatesCategory, setTemplatesCategory] = useState<TemplatesCategory>("featured");
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,6 +147,7 @@ export function CreateModal({ isOpen, onClose }: CreateModalProps) {
                       <button
                         key={id}
                         type="button"
+                        onClick={() => { onClose(); router.push(activeToolSection.href); }}
                         className="group/tool flex cursor-pointer items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-white/5"
                       >
                         <div
