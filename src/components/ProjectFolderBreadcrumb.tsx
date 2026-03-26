@@ -360,6 +360,9 @@ export function ProjectFolderBreadcrumb() {
   ) : (
     <div className="size-3 shrink-0 rounded" style={{ background: activeProject.color }} />
   )}
+  {activeProject.isTeam && (
+    <Users weight="fill" size={14} className="shrink-0 text-fg/50" />
+  )}
   <span className="text-[13px] font-medium text-fg">{activeProject.name}</span>
         {activeFolder && (
           <>
