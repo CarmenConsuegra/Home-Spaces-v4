@@ -8,10 +8,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Magnific",
-  description: "Project sidebar and page layout",
+  title: "Freepik",
+  description: "AI Creative Suite",
   icons: {
-    icon: "/m.svg",
+    icon: "/freepik-logo.png",
   },
 };
 
