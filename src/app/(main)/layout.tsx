@@ -6,6 +6,7 @@ import { ToolProvider } from "@/contexts/ToolContext";
 import { PaletteProvider } from "@/contexts/PaletteContext";
 import { AssistantPanelProvider } from "@/contexts/AssistantPanelContext";
 import { AssetsFilterProvider } from "@/contexts/AssetsFilterContext";
+import { NewProjectModalProvider } from "@/contexts/NewProjectModalContext";
 
 export default function MainLayout({
   children,
@@ -18,6 +19,7 @@ export default function MainLayout({
         <AssetsFilterProvider>
           <SpotlightProvider>
             <CreateModalProvider>
+              <NewProjectModalProvider>
               <ToolProvider>
                 <AssistantPanelProvider>
                 <div
@@ -28,6 +30,7 @@ export default function MainLayout({
                 </div>
                 </AssistantPanelProvider>
               </ToolProvider>
+              </NewProjectModalProvider>
             </CreateModalProvider>
           </SpotlightProvider>
         </AssetsFilterProvider>

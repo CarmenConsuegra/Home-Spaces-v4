@@ -251,8 +251,10 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
   // Get folder from URL query param
   const currentFolderName = searchParams.get("folder") || "";
   
-  // Get project name from URL slug
-  const projectName = projectIdToName[projectId];
+  // Get project name from URL slug — try static map first, then match by slug
+  const projectName = projectIdToName[projectId]
+    || projects.find(p => p.name.toLowerCase().replace(/\s+/g, "-") === projectId)?.name
+    || undefined;
   const project = projects.find(p => p.name === projectName);
   const projectPath = projectName ? projectPathMap[projectName] : null;
   
@@ -406,6 +408,40 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
               </div>
             )}
           </section>
+        </div>
+      </ProjectsLayout>
+    );
+  }
+
+  // Empty state - no folders and no assets
+  const isEmptyProject = project.folders.length === 0 && assets.length === 0 && spaces.length === 0;
+
+  if (isEmptyProject) {
+    return (
+      <ProjectsLayout title={project.name} projectDetailHeader>
+        <div className="flex flex-col items-center justify-center py-32">
+          <FolderSimple weight="thin" size={48} style={{ color: "#737373" }} />
+          <h3
+            className="mt-4 text-[20px] font-medium"
+            style={{ color: "#f5f5f5" }}
+          >
+            Start organizing
+          </h3>
+          <p
+            className="mt-2 text-center text-[14px]"
+            style={{ color: "#737373" }}
+          >
+            Create folders and start adding assets to your project
+          </p>
+          <button
+            type="button"
+            onClick={() => createModal?.open()}
+            className="mt-6 flex h-10 items-center gap-2 rounded-lg px-5 text-[14px] font-medium text-white transition-colors hover:opacity-90"
+            style={{ background: project.color || "#336aea" }}
+          >
+            <Plus weight="bold" size={14} />
+            Start creating
+          </button>
         </div>
       </ProjectsLayout>
     );

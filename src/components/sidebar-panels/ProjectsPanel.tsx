@@ -28,6 +28,7 @@ import {
 } from "@phosphor-icons/react";
 import { Tooltip } from "@/components/Tooltip";
 import { useFolder, type Folder, type Project } from "@/contexts/FolderContext";
+import { useNewProjectModal } from "@/contexts/NewProjectModalContext";
 
 // ── Project context menu ──────────────────────────────────────────────────────
 
@@ -553,6 +554,7 @@ function ProjectRow({
 export function ProjectsPanel() {
   const pathname = usePathname();
   const { projects, addFolder, moveAsset, moveSpace } = useFolder();
+  const newProjectModal = useNewProjectModal();
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [creatingFolderAt, setCreatingFolderAt] = useState<string | null>(null);
@@ -676,6 +678,7 @@ export function ProjectsPanel() {
           <Tooltip content="New project" side="left">
             <button
               type="button"
+              onClick={() => newProjectModal?.open()}
               className={`flex shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-white/10 ${iconBtn}`}
               style={{ color: "var(--surface-foreground-0)" }}
               aria-label="Add project"

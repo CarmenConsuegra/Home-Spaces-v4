@@ -3,13 +3,13 @@
 import { useMemo } from "react";
 import { ProjectsLayout, useProjectsFilter } from "@/components/ProjectsLayout";
 import { ProjectCard, NewProjectCard } from "@/components/ProjectCard";
-import { useCreateModal } from "@/contexts/CreateModalContext";
+import { useNewProjectModal } from "@/contexts/NewProjectModalContext";
 import { useFolder } from "@/contexts/FolderContext";
 
 const ME = "Alvaro Castañeda";
 
 function ProjectsGrid() {
-  const createModal = useCreateModal();
+  const newProjectModal = useNewProjectModal();
   const { projects } = useFolder();
   const { visibilityFilter, selectedOwner, projectsSearchQuery } = useProjectsFilter();
 
@@ -26,7 +26,7 @@ function ProjectsGrid() {
 
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
-      <NewProjectCard onClick={() => createModal?.open()} />
+      <NewProjectCard onClick={() => newProjectModal?.open()} />
       {filtered.map((project) => (
         <ProjectCard
           key={project.name}

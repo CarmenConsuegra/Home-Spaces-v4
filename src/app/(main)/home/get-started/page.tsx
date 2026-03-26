@@ -58,6 +58,7 @@ import { AssetCard } from "@/components/AssetCard";
 import { allSpaces } from "@/data/spaces";
 import { getProjectAssets } from "@/data/projectAssets";
 import { useRouter } from "next/navigation";
+import { useNewProjectModal } from "@/contexts/NewProjectModalContext";
 
 
 
@@ -364,6 +365,7 @@ function ListItem({ thumb, name, date, href }: { thumb?: string; name: string; d
 }
 
 function RecentWorkTab() {
+  const newProjectModal = useNewProjectModal();
   const sortedSpaces = [...allSpaces].sort((a, b) => parseDaysAgo(a.editedAt) - parseDaysAgo(b.editedAt));
   const recentAssets = getProjectAssets("").slice(0, 3);
 
@@ -376,7 +378,7 @@ function RecentWorkTab() {
       >
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-medium" style={{ color: "#f5f5f5" }}>Projects</span>
-          <button type="button" className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-white/5" style={{ color: "#f5f5f5" }}>
+          <button type="button" onClick={() => newProjectModal?.open()} className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-white/5" style={{ color: "#f5f5f5" }}>
             <Plus weight="regular" size={12} />
           </button>
         </div>

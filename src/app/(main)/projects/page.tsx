@@ -6,7 +6,7 @@ import { ProjectsLayout } from "@/components/ProjectsLayout";
 import { ProjectCard, NewProjectCard } from "@/components/ProjectCard";
 import { AssetCard } from "@/components/AssetCard";
 import { SpaceCard } from "@/components/SpaceCard";
-import { useCreateModal } from "@/contexts/CreateModalContext";
+import { useNewProjectModal } from "@/contexts/NewProjectModalContext";
 import { useFolder } from "@/contexts/FolderContext";
 import { getProjectAssets } from "@/data/projectAssets";
 import { allSpaces } from "@/data/spaces";
@@ -90,7 +90,7 @@ function useFitRow(cardWidth: number, gap: number, total: number) {
 }
 
 export default function WorkPage() {
-  const createModal = useCreateModal();
+  const newProjectModal = useNewProjectModal();
   const { projects } = useFolder();
 
   const assetsData = useMemo(() => {
@@ -139,7 +139,7 @@ export default function WorkPage() {
           {projectsExpanded && (
             <div ref={projectsRef} className="flex gap-6">
               <div className="w-[200px] shrink-0">
-                <NewProjectCard onClick={() => createModal?.open()} />
+                <NewProjectCard onClick={() => newProjectModal?.open()} />
               </div>
               {visibleProjects.map((project) => (
                 <div key={project.name} className="w-[200px] shrink-0">
