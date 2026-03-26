@@ -296,22 +296,7 @@ function ScrollRow({ title, templates }: { title: string; templates: { id: strin
 
   return (
     <div className="group/row relative mx-auto flex w-full flex-col gap-4" style={{ maxWidth: 1200 }}>
-      <div className="flex items-center justify-between">
-        <h2
-          className="text-xl font-medium"
-          style={{ color: "var(--surface-foreground-0)" }}
-        >
-          {title}
-        </h2>
-        <button
-          type="button"
-          className="cursor-pointer text-xs font-medium opacity-50 transition-opacity hover:opacity-80"
-          style={{ color: "var(--surface-foreground-0)" }}
-        >
-          See all &rsaquo;
-        </button>
-      </div>
-      <div className="relative -mr-6">
+      <div className="relative">
         <ScrollArrows canScrollLeft={canScrollLeft} canScrollRight={canScrollRight} scroll={scroll} />
         <div
           ref={scrollRef}
@@ -652,7 +637,7 @@ export default function GetStartedPage() {
           {bottomTab === "For you" && (
           <>
           {/* Hero */}
-          <div className="group/row relative mx-auto w-full" style={{ minHeight: 200, maxWidth: 1200 }}>
+          <div className="group/row relative mx-auto w-full" style={{ minHeight: 192, maxWidth: 1200 }}>
             <ScrollArrows canScrollLeft={heroScroll.canScrollLeft} canScrollRight={heroScroll.canScrollRight} scroll={heroScroll.scroll} />
             <div
               ref={heroScroll.scrollRef}
@@ -742,7 +727,7 @@ export default function GetStartedPage() {
                   <button
                     key={card.title}
                     type="button"
-                    className="group/card relative flex h-[200px] aspect-video shrink-0 cursor-pointer flex-col justify-end gap-4 overflow-hidden rounded-xl p-5 text-left"
+                    className="group/card relative flex h-[192px] aspect-video shrink-0 cursor-pointer flex-col justify-end gap-4 overflow-hidden rounded-xl p-5 text-left"
                   >
                     <img
                       src={card.image}
@@ -793,7 +778,7 @@ export default function GetStartedPage() {
               ].map((tut) => (
                 <div
                   key={tut.title}
-                  className="flex min-w-0 flex-1 cursor-pointer gap-3 overflow-hidden rounded-xl p-4 transition-colors hover:bg-white/5"
+                  className="flex h-[192px] min-w-0 flex-1 cursor-pointer gap-3 overflow-hidden rounded-xl p-4 transition-colors hover:bg-white/5"
                   style={{ background: "#1a1a1a" }}
                 >
                   <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
@@ -810,7 +795,7 @@ export default function GetStartedPage() {
                       {tut.title}
                     </h3>
                   </div>
-                  <div className="relative size-40 shrink-0 overflow-hidden rounded-lg">
+                  <div className="relative aspect-square h-full shrink-0 overflow-hidden rounded-lg">
                     <NextImage src={tut.image} alt={tut.title} fill unoptimized className="object-cover" />
                     {/* Play button */}
                     <div className="absolute inset-0 flex items-center justify-center">
