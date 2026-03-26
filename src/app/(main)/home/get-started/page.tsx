@@ -596,7 +596,7 @@ export default function GetStartedPage() {
                   </div>
                   <div className="flex flex-col leading-[1.6]">
                     <span className="text-[16px] font-medium" style={{ color: "#f5f5f5" }}>{label}</span>
-                    <span className="text-[12px]" style={{ color: "#424242" }}>{desc}</span>
+                    <span className="text-[12px]" style={{ color: "#737373" }}>{desc}</span>
                   </div>
                 </div>
               </Link>
