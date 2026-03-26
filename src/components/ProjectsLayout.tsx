@@ -158,7 +158,7 @@ export function useProjectsFilter() {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function ProjectsLayout(props: { title: string; children?: ReactNode; simpleHeader?: boolean; projectsHeader?: boolean; projectDetailHeader?: boolean; assetsHeader?: boolean }) {
+export function ProjectsLayout(props: { title: string; children?: ReactNode; simpleHeader?: boolean; projectsHeader?: boolean; projectDetailHeader?: boolean; assetsHeader?: boolean; hideFavoritesFilter?: boolean }) {
   return (
     <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><div className="text-fg/50">Loading...</div></div>}>
       <ProjectsLayoutInner {...props} />
@@ -166,7 +166,7 @@ export function ProjectsLayout(props: { title: string; children?: ReactNode; sim
   );
 }
 
-function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHeader = false, projectDetailHeader = false, assetsHeader = false }: { title: string; children?: ReactNode; simpleHeader?: boolean; projectsHeader?: boolean; projectDetailHeader?: boolean; assetsHeader?: boolean }) {
+function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHeader = false, projectDetailHeader = false, assetsHeader = false, hideFavoritesFilter = false }: { title: string; children?: ReactNode; simpleHeader?: boolean; projectsHeader?: boolean; projectDetailHeader?: boolean; assetsHeader?: boolean; hideFavoritesFilter?: boolean }) {
   const createModal = useCreateModal();
   const [visibilityFilter, setVisibilityFilter] = useState<"All" | "Shared" | "Private">("All");
   const [ownerDropdownOpen, setOwnerDropdownOpen] = useState(false);
@@ -569,7 +569,7 @@ function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHe
                 />
               </div>
             ) : assetsHeader ? (
-              <AssetsFilterBar />
+              <AssetsFilterBar hideFavorites={hideFavoritesFilter} />
             ) : projectDetailHeader ? (
               <div className="flex items-center gap-1.5">
                 {/* Content type icon group */}

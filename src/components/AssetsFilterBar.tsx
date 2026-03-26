@@ -15,7 +15,7 @@ import { usePalette } from "@/contexts/PaletteContext";
 import { useAssetsFilter } from "@/contexts/AssetsFilterContext";
 import { ProjectFilter, OwnerFilter } from "@/components/FilterDropdowns";
 
-export function AssetsFilterBar() {
+export function AssetsFilterBar({ hideFavorites = false }: { hideFavorites?: boolean } = {}) {
   const { surfaceColors: sc } = usePalette();
   
   const {
@@ -68,17 +68,19 @@ export function AssetsFilterBar() {
       </div>
 
       {/* Favorites toggle */}
-      <button
-        type="button"
-        onClick={() => setFavoritesOnly(!favoritesOnly)}
-        className="flex size-9 items-center justify-center rounded-lg transition-colors"
-        style={{
-          background: favoritesOnly ? "rgba(255,255,255,0.1)" : sc.button,
-          color: favoritesOnly ? "var(--surface-foreground-0)" : "var(--surface-foreground-2)",
-        }}
-      >
-        <Heart weight={favoritesOnly ? "fill" : "bold"} size={18} />
-      </button>
+      {!hideFavorites && (
+        <button
+          type="button"
+          onClick={() => setFavoritesOnly(!favoritesOnly)}
+          className="flex size-9 items-center justify-center rounded-lg transition-colors"
+          style={{
+            background: favoritesOnly ? "rgba(255,255,255,0.1)" : sc.button,
+            color: favoritesOnly ? "var(--surface-foreground-0)" : "var(--surface-foreground-2)",
+          }}
+        >
+          <Heart weight={favoritesOnly ? "fill" : "bold"} size={18} />
+        </button>
+      )}
 
       {/* Project dropdown */}
       <ProjectFilter

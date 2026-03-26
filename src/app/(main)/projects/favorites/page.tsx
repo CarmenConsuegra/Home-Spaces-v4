@@ -44,7 +44,7 @@ export default function FavoritesPage() {
   }, [selectedProject, selectedOwner]);
 
   return (
-    <ProjectsLayout title="Favorites" assetsHeader>
+    <ProjectsLayout title="Favorites" assetsHeader hideFavoritesFilter>
       <div className="flex flex-col gap-8">
         {/* Spaces */}
         {filteredSpaces.length > 0 && (
