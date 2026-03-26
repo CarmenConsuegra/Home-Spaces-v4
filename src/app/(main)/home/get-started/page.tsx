@@ -1,0 +1,924 @@
+"use client";
+
+import { useState, useRef, useCallback, useEffect } from "react";
+import localFont from "next/font/local";
+import { usePalette } from "@/contexts/PaletteContext";
+
+const klarheit = localFont({ src: "../../../fonts/ESKlarheitPlakat-Xbd.otf" });
+import Link from "next/link";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import {
+  MagnifyingGlass,
+  Image,
+  PenNib,
+  PencilSimple,
+  ArrowsOut,
+  CornersOut,
+  Copy,
+  VideoCamera,
+  FilmSlate,
+  Scissors,
+  Waveform,
+  Microphone,
+  Sparkle,
+  MusicNotes,
+  Cube,
+  TreeStructure,
+  CaretLeft,
+  CaretRight,
+  PaperPlaneRight,
+  Paperclip,
+  Plus,
+  SpeakerHigh,
+  CaretDown,
+  Heart,
+  GridFour,
+  Layout,
+  FolderSimple,
+  ClockCounterClockwise,
+  DotsThreeVertical,
+  LockSimple,
+  Folders,
+  UsersThree,
+} from "@phosphor-icons/react";
+import { AssistantButton } from "@/components/AssistantButton";
+import { AvatarWithProgress } from "@/components/AvatarWithProgress";
+import { FreepikButton } from "@/components/FreepikButton";
+import { Tooltip } from "@/components/Tooltip";
+import { ProjectFolderBreadcrumb } from "@/components/ProjectFolderBreadcrumb";
+import { projects } from "@/contexts/FolderContext";
+
+
+
+const recentRowImages = [
+  "https://images.unsplash.com/photo-1772289093030-bc33ef6d4417?w=400&q=80",
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&q=80",
+  "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=400&q=80",
+  "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=80",
+];
+
+const filterTabs = [
+  { label: "For you", icon: Heart },
+  { label: "Apps", icon: GridFour },
+  { label: "Templates", icon: Layout },
+];
+const secondaryTabs = [
+  { label: "Projects", icon: Folders },
+  { label: "Recents", icon: ClockCounterClockwise },
+];
+
+const modelCategories = [
+  {
+    category: "Image",
+    models: [
+      { id: "nano-banana", name: "Google Nano Banana", author: "Google" },
+      { id: "sdxl", name: "SDXL", author: "Stability AI" },
+      { id: "flux-schnell", name: "Flux Schnell", author: "Black Forest Labs" },
+      { id: "ideogram-v2", name: "Ideogram v2", author: "Ideogram" },
+      { id: "recraft-v3", name: "Recraft v3", author: "Recraft" },
+      { id: "playground-v3", name: "Playground v3", author: "Playground" },
+    ],
+  },
+  {
+    category: "Video",
+    models: [
+      { id: "kling-v2", name: "Kling v2", author: "Kuaishou" },
+      { id: "minimax-video", name: "Minimax Video-01", author: "MiniMax" },
+      { id: "luma-ray2", name: "Luma Ray2", author: "Luma AI" },
+      { id: "wan-2.1", name: "Wan 2.1", author: "Alibaba" },
+      { id: "ltx-video", name: "LTX Video", author: "Lightricks" },
+    ],
+  },
+  {
+    category: "Audio",
+    models: [
+      { id: "voiceover", name: "Voiceover", author: "" },
+      { id: "music", name: "Music", author: "" },
+      { id: "sound-effects", name: "Sound Effects", author: "" },
+    ],
+  },
+];
+
+function slugify(title: string) {
+  return title.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function getToolCategories(blueSolid: string, greenSolid: string, orangeSolid: string, yellowSolid: string) { return [
+  {
+    category: "Image",
+    bgGradient: blueSolid,
+    borderColor: blueSolid,
+    subtleBg: `${blueSolid}33`,
+    tools: [
+      { label: "Image Generator", icon: Image, desc: "Create stunning images from text prompts" },
+      { label: "Image Editor", icon: PenNib, desc: "Edit and retouch photos with AI precision" },
+      { label: "Image Upscaler", icon: ArrowsOut, desc: "Enhance resolution without losing quality" },
+      { label: "Image Extender", icon: CornersOut, desc: "Expand any image beyond its original bounds" },
+      { label: "Variations", icon: Copy, desc: "Generate multiple creative variations of an image" },
+    ],
+  },
+  {
+    category: "Video",
+    bgGradient: greenSolid,
+    borderColor: greenSolid,
+    subtleBg: `${greenSolid}33`,
+    tools: [
+      { label: "Video Generator", icon: VideoCamera, desc: "Turn text or images into cinematic video clips" },
+      { label: "Video Timeline", icon: FilmSlate, desc: "Compose and arrange clips on a visual timeline" },
+      { label: "Clip Editor", icon: Scissors, desc: "Trim, cut, and refine video footage" },
+      { label: "Video Upscaler", icon: ArrowsOut, desc: "Upscale video resolution with AI enhancement" },
+      { label: "Lip Sync", icon: Waveform, desc: "Sync audio to video for realistic lip movement" },
+    ],
+  },
+  {
+    category: "Audio",
+    bgGradient: orangeSolid,
+    borderColor: orangeSolid,
+    subtleBg: `${orangeSolid}33`,
+    tools: [
+      { label: "Voice Generator", icon: Microphone, desc: "Generate natural-sounding voiceovers from text" },
+      { label: "Voiceover", icon: Microphone, desc: "Add professional voiceover narration to content" },
+      { label: "Voice Cloning", icon: Microphone, desc: "Clone any voice with just a short sample" },
+      { label: "Sound Effects", icon: Sparkle, desc: "Create custom sound effects on demand" },
+      { label: "Music Generator", icon: MusicNotes, desc: "Compose original music in any style or mood" },
+    ],
+  },
+  {
+    category: "3D",
+    bgGradient: yellowSolid,
+    borderColor: yellowSolid,
+    subtleBg: `${yellowSolid}33`,
+    tools: [
+      { label: "3D Generator", icon: Cube, desc: "Generate 3D models from text or image input" },
+      { label: "3D Objects", icon: Cube, desc: "Create detailed 3D objects from references" },
+      { label: "3D Worlds", icon: Cube, desc: "Build immersive 3D environments and scenes" },
+    ],
+  },
+]; }
+
+const templateSections = [
+  {
+    title: "New",
+    templates: [
+      { id: "new-0", title: "Create an AI influencer", desc: "Generate a realistic AI persona for social content" },
+      { id: "new-1", title: "Product in lifestyle scene", desc: "Place your product in a natural everyday setting" },
+      { id: "new-2", title: "Mock up branded packaging", desc: "Visualize your design on realistic packaging" },
+      { id: "new-3", title: "Change your background", desc: "Swap the background of any photo instantly" },
+      { id: "new-4", title: "Change your product", desc: "Replace or modify products in existing photos" },
+      { id: "new-5", title: "Create a close-up confession", desc: "Generate an intimate close-up portrait scene" },
+      { id: "new-6", title: "Capture an epic wide shot", desc: "Create dramatic landscape and wide-angle imagery" },
+      { id: "new-7", title: "Capture a VHS POV moment", desc: "Apply a retro VHS camcorder aesthetic to any scene" },
+      { id: "new-8", title: "Create cinematic portrait", desc: "Generate movie-quality portrait photography" },
+      { id: "new-9", title: "Generate product mockup", desc: "Create realistic mockups for any product type" },
+      { id: "new-10", title: "Design a poster layout", desc: "Build eye-catching poster compositions" },
+      { id: "new-11", title: "Build a mood board", desc: "Curate visual references into a cohesive board" },
+      { id: "new-12", title: "Create fashion lookbook", desc: "Style and compose editorial fashion spreads" },
+      { id: "new-13", title: "Render 3D product view", desc: "Generate photorealistic 3D product renders" },
+      { id: "new-14", title: "Generate stock photo", desc: "Produce royalty-free images on demand" },
+    ],
+  },
+  {
+    title: "Popular",
+    templates: [
+      { id: "feat-0", title: "Create a hero shot", desc: "Craft a bold hero image for landing pages" },
+      { id: "feat-1", title: "Create flat lay composition", desc: "Arrange objects in stylish overhead layouts" },
+      { id: "feat-2", title: "Generate social ad", desc: "Create scroll-stopping ad creatives" },
+      { id: "feat-3", title: "Create video thumbnail", desc: "Design clickable thumbnails for video content" },
+      { id: "feat-4", title: "Design event flyer", desc: "Build promotional flyers for any occasion" },
+      { id: "feat-5", title: "Make a logo concept", desc: "Explore logo ideas and visual marks" },
+      { id: "feat-6", title: "Create brand identity", desc: "Develop a cohesive visual brand system" },
+      { id: "feat-7", title: "Generate travel content", desc: "Create stunning travel destination imagery" },
+      { id: "feat-8", title: "Create editorial portrait", desc: "Generate magazine-quality portrait photography" },
+      { id: "feat-9", title: "Generate food photography", desc: "Create appetizing food imagery" },
+      { id: "feat-10", title: "Make before & after", desc: "Create side-by-side comparison graphics" },
+      { id: "feat-11", title: "Generate lifestyle scene", desc: "Create authentic lifestyle moments" },
+      { id: "feat-12", title: "Create product unboxing", desc: "Simulate unboxing experience shots" },
+      { id: "feat-13", title: "Change scene and mood", desc: "Transform the atmosphere and tone of a photo" },
+      { id: "feat-14", title: "Create fitness post", desc: "Generate workout and wellness content" },
+    ],
+  },
+  {
+    title: "Branding",
+    templates: [
+      { id: "brand-0", title: "Create 3D icon of an object", desc: "Turn any object into a stylized 3D icon" },
+      { id: "brand-1", title: "Create packaging design", desc: "Design packaging for physical products" },
+      { id: "brand-2", title: "Translate visual design", desc: "Adapt a design across formats and mediums" },
+      { id: "brand-3", title: "Design typographic poster", desc: "Create bold type-driven poster artwork" },
+      { id: "brand-4", title: "Transfer color palette to your image", desc: "Apply a custom palette to any image" },
+      { id: "brand-5", title: "Create brand guidelines", desc: "Build a comprehensive brand guide document" },
+      { id: "brand-6", title: "Design business card", desc: "Generate professional business card layouts" },
+      { id: "brand-7", title: "Generate logo variations", desc: "Explore multiple logo concepts quickly" },
+      { id: "brand-8", title: "Design letterhead", desc: "Create branded stationery and letterhead" },
+      { id: "brand-9", title: "Build brand mood board", desc: "Assemble visual direction for a brand" },
+      { id: "brand-10", title: "Create social media kit", desc: "Design a set of branded social templates" },
+      { id: "brand-11", title: "Design merchandise", desc: "Mockup branded merch and apparel" },
+      { id: "brand-12", title: "Build style guide", desc: "Document visual styles and usage rules" },
+      { id: "brand-13", title: "Create billboard mockup", desc: "Preview designs on large-format displays" },
+    ],
+  },
+  {
+    title: "Social media",
+    templates: [
+      { id: "social-0", title: "Get a new haircut", desc: "Preview different hairstyles on any portrait" },
+      { id: "social-1", title: "Try on new outfits", desc: "Virtually try clothing on any person" },
+      { id: "social-2", title: "Create restaurant tabletop scene", desc: "Style food and drink flat lays" },
+      { id: "social-3", title: "Design quote card", desc: "Create shareable quote graphics" },
+      { id: "social-4", title: "Make carousel post", desc: "Design multi-slide carousel content" },
+      { id: "social-5", title: "Create story template", desc: "Build reusable story layouts" },
+      { id: "social-6", title: "Generate reel cover", desc: "Design eye-catching covers for short-form video" },
+      { id: "social-7", title: "Design profile banner", desc: "Create on-brand headers for social profiles" },
+      { id: "social-8", title: "Create event promotion", desc: "Build promotional graphics for events" },
+      { id: "social-9", title: "Design infographic", desc: "Build data-driven visual stories" },
+      { id: "social-10", title: "Design email template", desc: "Build responsive email layouts" },
+      { id: "social-11", title: "Generate icon set", desc: "Create a consistent set of custom icons" },
+      { id: "social-12", title: "Create presentation deck", desc: "Design polished slide presentations" },
+      { id: "social-13", title: "Design storefront signage", desc: "Visualize branded signs and displays" },
+    ],
+  },
+];
+
+function useHorizontalScroll(scrollAmount = 600) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  const scroll = useCallback((direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
+  }, [scrollAmount]);
+
+  return { scrollRef, canScrollLeft, canScrollRight, updateScrollState, scroll };
+}
+
+function ScrollArrows({ canScrollLeft, canScrollRight, scroll }: { canScrollLeft: boolean; canScrollRight: boolean; scroll: (dir: "left" | "right") => void }) {
+  return (
+    <>
+      {canScrollLeft && (
+        <button
+          type="button"
+          onClick={() => scroll("left")}
+          className="absolute left-0 top-0 z-10 flex h-full w-12 cursor-pointer items-center justify-start pl-1 opacity-0 transition-opacity group-hover/row:opacity-100"
+          aria-label="Scroll left"
+        >
+          <span className="flex size-8 items-center justify-center rounded-full border border-white/20 bg-black">
+            <CaretLeft weight="bold" size={16} className="text-fg" />
+          </span>
+        </button>
+      )}
+      {canScrollRight && (
+        <button
+          type="button"
+          onClick={() => scroll("right")}
+          className="absolute right-0 top-0 z-10 flex h-full w-12 cursor-pointer items-center justify-end pr-1 opacity-0 transition-opacity group-hover/row:opacity-100"
+          aria-label="Scroll right"
+        >
+          <span className="flex size-8 items-center justify-center rounded-full border border-white/20 bg-black">
+            <CaretRight weight="bold" size={16} className="text-fg" />
+          </span>
+        </button>
+      )}
+    </>
+  );
+}
+
+function ScrollRow({ title, templates }: { title: string; templates: { id: string; title: string; desc: string }[] }) {
+  const { scrollRef, canScrollLeft, canScrollRight, updateScrollState, scroll } = useHorizontalScroll();
+
+  return (
+    <div className="group/row relative flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h2
+          className="text-xl font-medium"
+          style={{ color: "var(--surface-foreground-0)" }}
+        >
+          {title}
+        </h2>
+        <button
+          type="button"
+          className="cursor-pointer text-xs font-medium opacity-50 transition-opacity hover:opacity-80"
+          style={{ color: "var(--surface-foreground-0)" }}
+        >
+          See all &rsaquo;
+        </button>
+      </div>
+      <div className="relative -mr-6">
+        <ScrollArrows canScrollLeft={canScrollLeft} canScrollRight={canScrollRight} scroll={scroll} />
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollState}
+          onMouseEnter={updateScrollState}
+          className="flex gap-6 overflow-x-auto pr-6 scrollbar-hide"
+        >
+          {templates.map(({ id, title: tTitle, desc }) => (
+            <button
+              key={id}
+              type="button"
+              className="flex w-[356px] shrink-0 cursor-pointer flex-col gap-2.5 overflow-hidden text-left transition-opacity hover:opacity-80"
+            >
+              <div
+                className="aspect-video w-full shrink-0 overflow-hidden rounded-xl border"
+                style={{ borderColor: "rgba(255,255,255,0.1)" }}
+              >
+                <img
+                  src={`/templates/${slugify(tTitle)}.webp`}
+                  alt={tTitle}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="flex w-full flex-col gap-0.5">
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--surface-foreground-0)" }}
+                >
+                  {tTitle}
+                </p>
+                <p
+                  className="line-clamp-2 text-sm"
+                  style={{ color: "var(--surface-foreground-2)" }}
+                >
+                  {desc}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function GetStartedPage() {
+  const [activeTab, setActiveTab] = useState("For you");
+  const [selectedTool, setSelectedTool] = useState("Find Stock");
+  const [selectedRatio, setSelectedRatio] = useState("1:1");
+  const [generationCount, setGenerationCount] = useState(1);
+  const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+  const [selectorPos, setSelectorPos] = useState<{ top: number; bottom: number; right: number; openAbove: boolean } | null>(null);
+  const modelSelectorRef = useRef<HTMLDivElement>(null);
+  const modelBtnTriggerRef = useRef<HTMLButtonElement>(null);
+  const [showAllTools, setShowAllTools] = useState(false);
+  const heroScroll = useHorizontalScroll();
+  const mainScrollRef = useRef<HTMLDivElement>(null);
+  const topSectionRef = useRef<HTMLDivElement>(null);
+  const [topFade, setTopFade] = useState(1);
+  const [topSectionHeight, setTopSectionHeight] = useState(0);
+
+  const updateSelectorPos = useCallback(() => {
+    if (modelBtnTriggerRef.current) {
+      const rect = modelBtnTriggerRef.current.getBoundingClientRect();
+      setSelectorPos({
+        top: rect.top,
+        bottom: rect.bottom,
+        right: window.innerWidth - rect.right,
+        openAbove: rect.top > window.innerHeight / 2,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!modelSelectorOpen) return;
+    window.addEventListener("resize", updateSelectorPos);
+    return () => window.removeEventListener("resize", updateSelectorPos);
+  }, [modelSelectorOpen, updateSelectorPos]);
+
+  useEffect(() => {
+    const el = topSectionRef.current;
+    if (!el) return;
+    setTopSectionHeight(el.offsetHeight);
+    const ro = new ResizeObserver(() => setTopSectionHeight(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const handleMainScroll = useCallback(() => {
+    const scrollEl = mainScrollRef.current;
+    if (!scrollEl || !topSectionHeight) return;
+    const scrollY = scrollEl.scrollTop;
+    const fade = Math.max(0, 1 - scrollY / (topSectionHeight * 0.6));
+    setTopFade(fade);
+  }, [topSectionHeight]);
+
+  const { colors: paletteColors, surfaceColors: sc } = usePalette();
+  const purpleSolid = paletteColors.spaces.bg;
+  const blueSolid = paletteColors.image.bg;
+  const greenSolid = paletteColors.video.bg;
+  const orangeSolid = paletteColors.audio.bg;
+  const yellowSolid = paletteColors["3d"].bg;
+  const graySolid = paletteColors.stock.bg;
+  const toolCategories = getToolCategories(blueSolid, greenSolid, orangeSolid, yellowSolid);
+
+  const toolToCategory: Record<string, string> = {
+    Image: "Image", Video: "Video", "3D Object": "3D",
+    Voiceover: "Audio", Music: "Audio", "Sound Effects": "Audio",
+    "Find Stock": "Stock",
+  };
+  const selectedCategory = toolToCategory[selectedTool] ?? "Image";
+  const categoryGradients: Record<string, string> = {
+    Image: blueSolid,
+    Video: greenSolid,
+    Audio: orangeSolid,
+    "3D": yellowSolid,
+    Stock: graySolid,
+  };
+
+  return (
+    <main
+      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl"
+      style={{ background: "var(--surface-modal)" }}
+    >
+      <header className="flex h-[60px] shrink-0 items-center justify-between px-6">
+        <Breadcrumb />
+        <div className="flex items-center gap-3">
+          <FreepikButton />
+          <AssistantButton />
+          <AvatarWithProgress />
+        </div>
+      </header>
+
+      <div className="relative min-h-0 flex-1 px-1 pb-1">
+        <div
+          ref={topSectionRef}
+          className="absolute inset-x-1 top-0 px-6"
+          style={{
+            opacity: topFade,
+            transform: `scale(${0.97 + 0.03 * topFade})`,
+            transformOrigin: "top center",
+            filter: `blur(${(1 - topFade) * 8}px)`,
+          }}
+          onWheel={(e) => {
+            if (mainScrollRef.current) {
+              mainScrollRef.current.scrollTop += e.deltaY;
+            }
+          }}
+        >
+          {/* Chat Box */}
+          <div className="mx-auto w-full pt-8 pb-8" style={{ maxWidth: 800 }}>
+            <h1 className="mb-8 text-center text-3xl font-normal tracking-normal text-fg" style={{ fontFamily: klarheit.style.fontFamily }}>
+              Good morning, start creating!
+            </h1>
+            <div>
+            <div
+              className="flex flex-col justify-between rounded-3xl border px-5 py-5"
+              style={{ background: sc.button, minHeight: 140, borderColor: "var(--surface-border-alpha-0)" }}
+            >
+              <input
+                type="text"
+                placeholder={`Describe the ${selectedTool.toLowerCase()} you want to create...`}
+                className="w-full bg-transparent text-[15px] text-fg outline-none placeholder:text-fg/30"
+              />
+              <div className="flex items-center justify-between">
+                <Tooltip content="Add references" side="top">
+                  <button
+                    type="button"
+                    className="flex size-8 cursor-pointer items-center justify-center rounded-lg bg-fg/5 text-fg/70 transition-colors hover:bg-fg/10 hover:text-fg"
+                  >
+                    <Plus weight="bold" size={16} />
+                  </button>
+                </Tooltip>
+                <div className="flex items-center gap-2">
+                  <div className="relative" ref={modelSelectorRef}>
+                    <button
+                      ref={modelBtnTriggerRef}
+                      type="button"
+                      onClick={() => {
+                        if (!modelSelectorOpen) updateSelectorPos();
+                        setModelSelectorOpen(!modelSelectorOpen);
+                      }}
+                      className="relative flex h-8 cursor-pointer items-center gap-2.5 rounded-lg border border-white/15 px-4 text-xs font-medium text-fg/70 transition-colors hover:text-fg/90"
+                    >
+                      <div className="absolute -inset-px rounded-lg opacity-60" style={{ background: categoryGradients[selectedCategory] }} />
+                      {selectedTool === "Image" && <Image weight="bold" size={14} className="relative text-fg" />}
+                      {selectedTool === "Video" && <VideoCamera weight="bold" size={14} className="relative text-fg" />}
+                      {selectedTool === "3D Object" && <Cube weight="bold" size={14} className="relative text-fg" />}
+                      {selectedTool === "Voiceover" && <Microphone weight="bold" size={14} className="relative text-fg" />}
+                      {selectedTool === "Music" && <MusicNotes weight="bold" size={14} className="relative text-fg" />}
+                      {selectedTool === "Sound Effects" && <Waveform weight="bold" size={14} className="relative text-fg" />}
+                      {selectedTool === "Find Stock" && <MagnifyingGlass weight="bold" size={14} className="relative text-fg" />}
+                      <span className="relative text-fg">{selectedTool}</span>
+                      <span className="relative text-fg/40">x{generationCount}</span>
+                    </button>
+                    
+                  </div>
+                  <button
+                    type="button"
+                    className="flex size-8 cursor-pointer items-center justify-center rounded-lg bg-fg/5 text-fg/70 transition-colors hover:bg-fg/10 hover:text-fg"
+                  >
+                    <PaperPlaneRight weight="bold" size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          {/* Tools row */}
+          <div className="group/row relative shrink-0 -mr-6 pt-10 pb-8">
+            <div className="pr-6">
+              <div className="grid justify-center gap-x-6 gap-y-2 min-[1540px]:gap-x-0.5 [grid-template-columns:repeat(3,240px)] min-[1540px]:[grid-template-columns:repeat(6,240px)]">
+              {[
+                { label: "Create a Space", icon: TreeStructure, desc: "Build creative workflows on an infinite canvas", bgColor: paletteColors.spaces.bg, iconColor: paletteColors.spaces.icon, href: "/spaces" },
+                { label: "Generate Image", icon: Image, desc: "Generate stunning images from text prompts", bgColor: paletteColors.image.bg, iconColor: paletteColors.image.icon, href: "/ai-suite" },
+                { label: "Generate Video", icon: VideoCamera, desc: "Generate cinematic video clips from text or images", bgColor: paletteColors.video.bg, iconColor: paletteColors.video.icon, href: "/video" },
+                { label: "Generate Audio", icon: Microphone, desc: "Generate natural-sounding voiceovers and music", bgColor: paletteColors.audio.bg, iconColor: paletteColors.audio.icon, href: "/audio" },
+                { label: "Generate 3D", icon: Cube, desc: "Generate 3D models from text or image input", bgColor: paletteColors["3d"].bg, iconColor: paletteColors["3d"].icon, href: "/3d" },
+                { label: "Find Stock", icon: MagnifyingGlass, desc: "Search millions of stock photos, vectors and more", bgColor: paletteColors.stock.bg, iconColor: paletteColors.stock.icon, href: "/stock" },
+              ].map(({ label, icon: Icon, desc, bgColor, iconColor, href }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className="flex w-[240px] shrink-0 cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-fg/5"
+                >
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl" style={{ background: bgColor }}>
+                    <Icon weight="bold" size={24} style={{ color: iconColor }} />
+                  </div>
+                  <div className="min-w-0 flex flex-col gap-0.5">
+                    <span className="text-sm font-medium leading-tight text-fg">{label}</span>
+                    <span className="text-[11px] leading-tight line-clamp-2" style={{ color: "var(--surface-foreground-2)" }}>{desc}</span>
+                  </div>
+                </Link>
+              ))}
+              </div>
+            </div>
+            <div
+              className="overflow-hidden transition-all duration-300 ease-in-out"
+              style={{
+                maxHeight: showAllTools ? 800 : 0,
+                opacity: showAllTools ? 1 : 0,
+              }}
+            >
+              <div className="mx-auto flex w-fit gap-0.5 pr-6 pt-6">
+                {[
+                  { category: "Spaces", color: paletteColors.spaces.icon, tools: [{ label: "New Space", icon: TreeStructure }, { label: "Templates", icon: TreeStructure }], href: "/spaces" },
+                  { category: "Image", color: paletteColors.image.icon, tools: toolCategories.find((c) => c.category === "Image")!.tools.slice(1), href: "/ai-suite" },
+                  { category: "Video", color: paletteColors.video.icon, tools: toolCategories.find((c) => c.category === "Video")!.tools.slice(1), href: "/video" },
+                  { category: "Audio", color: paletteColors.audio.icon, tools: toolCategories.find((c) => c.category === "Audio")!.tools.slice(1), href: "/audio" },
+                  { category: "3D", color: paletteColors["3d"].icon, tools: toolCategories.find((c) => c.category === "3D")!.tools.slice(1), href: "/3d" },
+                  { category: "Stock", color: paletteColors.stock.icon, tools: [{ label: "Photos", icon: Image }, { label: "Videos", icon: VideoCamera }, { label: "Audio", icon: SpeakerHigh }], href: "/stock" },
+                ].map(({ category, color, tools, href }) => (
+                  <div key={category} className="flex w-[240px] shrink-0 flex-col gap-0.5">
+                    {tools.map(({ label, icon: Icon }) => (
+                      <div key={label} className="flex h-8 items-center px-2.5">
+                        <Link
+                          href={href}
+                          className="flex cursor-pointer items-center gap-2.5 text-[13px] text-fg/60 transition-colors hover:text-fg"
+                        >
+                          <Icon weight="bold" size={14} className="shrink-0" style={{ color }} />
+                          <span className="truncate">{label}</span>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAllTools((v) => !v)}
+                className="flex h-8 cursor-pointer items-center gap-1.5 rounded-lg px-4 text-xs font-medium text-fg/50 transition-colors hover:text-fg/80"
+              >
+                {showAllTools ? "Hide all tools" : "Show all tools"}
+                <CaretDown
+                  weight="bold"
+                  size={10}
+                  className={`shrink-0 transition-transform duration-200 ${showAllTools ? "rotate-180" : ""}`}
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          ref={mainScrollRef}
+          onScroll={handleMainScroll}
+          className="relative z-10 h-full overflow-y-auto rounded-2xl pointer-events-none"
+          style={{ opacity: topSectionHeight ? 1 : 0 }}
+        >
+          <div style={{ height: topSectionHeight }} />
+          <div
+            className="pointer-events-auto flex flex-col gap-4 rounded-2xl px-6 py-4"
+            style={{ background: sc.panel, minHeight: "100%" }}
+          >
+          {/* Tabs + Search */}
+          <div
+            className="sticky top-0 z-20 -mx-6 flex items-center gap-6 rounded-t-2xl px-6 pb-4 pt-4 -mt-4"
+            style={{ background: sc.panel }}
+          >
+            <div className="flex flex-1 items-center gap-1">
+              {filterTabs.map(({ label, icon: Icon }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setActiveTab(label)}
+                  className="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors"
+                  style={{
+                    background: activeTab === label ? sc.button : "transparent",
+                    color: activeTab === label ? "var(--surface-foreground-0)" : "var(--surface-foreground-2)",
+                  }}
+                >
+                  <Icon weight="bold" size={14} />
+                  {label}
+                </button>
+              ))}
+              <div className="mx-1 h-4 w-px bg-fg/10" />
+              {secondaryTabs.map(({ label, icon: Icon }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setActiveTab(label)}
+                  className="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors"
+                  style={{
+                    background: activeTab === label ? sc.button : "transparent",
+                    color: activeTab === label ? "var(--surface-foreground-0)" : "var(--surface-foreground-2)",
+                  }}
+                >
+                  <Icon weight="bold" size={14} />
+                  {label}
+                </button>
+              ))}
+            </div>
+            {activeTab === "Recents" && (
+              <div className="flex items-center gap-1.5">
+                <ProjectFolderBreadcrumb />
+                <div className="mx-1 h-4 w-px" style={{ background: "var(--surface-border-alpha-0)" }} />
+                <div className="flex items-center rounded-lg" style={{ background: sc.button }}>
+                  {[
+                    { icon: Image, label: "Images" },
+                    { icon: VideoCamera, label: "Videos" },
+                    { icon: Waveform, label: "Audio" },
+                    { icon: Cube, label: "3D" },
+                  ].map(({ icon: Icon, label }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-fg/5"
+                      style={{ color: "var(--surface-foreground-2)" }}
+                    >
+                      <Icon weight="bold" size={16} />
+                    </button>
+                  ))}
+                </div>
+                <button type="button" className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-fg/5" style={{ background: sc.button, color: "var(--surface-foreground-2)" }}>
+                  <Heart weight="bold" size={16} />
+                </button>
+                <button type="button" className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-fg/5" style={{ background: sc.button, color: "var(--surface-foreground-2)" }}>
+                  <GridFour weight="bold" size={16} />
+                </button>
+                <button type="button" className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-fg/5" style={{ background: sc.button, color: "var(--surface-foreground-2)" }}>
+                  <MagnifyingGlass weight="bold" size={16} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {activeTab === "Projects" ? (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
+              <button
+                type="button"
+                className="group flex cursor-pointer flex-col overflow-hidden rounded-xl"
+              >
+                <div className="relative w-full overflow-hidden rounded-xl" style={{ background: "#2A2A2A" }}>
+                  <div className="mx-3 mt-3 flex items-center justify-center overflow-hidden rounded-xl bg-white/5" style={{ aspectRatio: "16/9" }}>
+                    <Plus weight="bold" size={24} className="text-fg-muted" />
+                  </div>
+                  <div className="px-3 py-2.5">
+                    <span className="text-sm font-semibold text-fg">New project</span>
+                  </div>
+                  <div className="absolute inset-0 rounded-xl bg-white/0 transition-colors group-hover:bg-white/5" />
+                </div>
+              </button>
+              {projects.map((project) => (
+                <button
+                  key={project.name}
+                  type="button"
+                  className="group flex cursor-pointer flex-col overflow-hidden rounded-xl"
+                >
+                  <div className="relative w-full overflow-hidden rounded-xl" style={{ background: "#2A2A2A" }}>
+                    {project.cover && (
+                      <div className="mx-3 mt-3 overflow-hidden rounded-xl" style={{ aspectRatio: "16/9" }}>
+                        <img src={project.cover} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between px-3 py-2.5">
+                      <span className="text-sm font-semibold text-fg">{project.name}</span>
+                      <div className="text-fg-muted" style={{ opacity: 0.4 }}>
+                        {project.isTeam ? <UsersThree weight="bold" size={14} /> : <LockSimple weight="bold" size={14} />}
+                      </div>
+                    </div>
+                    <div className="absolute inset-0 rounded-xl bg-white/0 transition-colors group-hover:bg-white/5" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : activeTab === "Recents" ? (
+            <div className="flex flex-col gap-3">
+              {recentRowImages.map((src, rowIdx) => (
+                <div key={rowIdx} className="grid grid-cols-5 gap-3">
+                  {Array.from({ length: 5 }, (_, colIdx) => (
+                    <div
+                      key={colIdx}
+                      className="group relative cursor-pointer overflow-hidden rounded-xl"
+                    >
+                      <img
+                        src={src}
+                        alt=""
+                        loading="lazy"
+                        className="block w-full rounded-xl object-cover"
+                        style={{ aspectRatio: "1" }}
+                      />
+                      <div className="absolute inset-0 rounded-xl bg-black/0 transition-colors duration-200 group-hover:bg-black/30" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : (
+          <>
+          {/* Hero */}
+          <div className="group/row relative -mr-6" style={{ minHeight: 200 }}>
+            <ScrollArrows canScrollLeft={heroScroll.canScrollLeft} canScrollRight={heroScroll.canScrollRight} scroll={heroScroll.scroll} />
+            <div
+              ref={heroScroll.scrollRef}
+              onScroll={heroScroll.updateScrollState}
+              onMouseEnter={heroScroll.updateScrollState}
+              className="flex gap-6 overflow-x-auto pr-6 scrollbar-hide"
+            >
+                {[
+                  {
+                    title: "Image Upscaler",
+                    desc: "Enhance resolution and recover fine detail with AI",
+                    tag: "New",
+                    gradient: blueSolid,
+                    image: "/promo-image-upscaler-2.png",
+                  },
+                  {
+                    title: "Clip Editor",
+                    desc: "Trim and refine your video clips with precision",
+                    tag: "New",
+                    gradient: blueSolid,
+                    image: "/promo-clip-editor.png",
+                  },
+                  {
+                    title: "Color Grading",
+                    desc: "Set the mood with cinematic color grading",
+                    tag: "New",
+                    gradient: blueSolid,
+                    image: "/promo-color-grading.png",
+                  },
+                  {
+                    title: "Cinematic Shot",
+                    desc: "Generate stunning cinematic compositions with full camera control",
+                    tag: "New",
+                    gradient: blueSolid,
+                    image: "/promo-cinematic-shot.png",
+                  },
+                  {
+                    title: "High-res Products with Seedream 4.5",
+                    desc: "Generate photorealistic high-resolution product imagery",
+                    tag: "New",
+                    gradient: blueSolid,
+                    image: "/promo-seedream-45.png",
+                  },
+                  {
+                    title: "Relight",
+                    desc: "Transform lighting and mood of any portrait",
+                    tag: "New",
+                    gradient: blueSolid,
+                    image: "/promo-relight-new.png",
+                  },
+                  {
+                    title: "Kling 3.0",
+                    desc: "Next-gen video creation with cinematic realism",
+                    tag: "New",
+                    gradient: greenSolid,
+                    image: "/promo-kling3-new.png",
+                  },
+                  {
+                    title: "360° Camera Control",
+                    desc: "Full camera orbit and angle control for video",
+                    tag: "New",
+                    gradient: greenSolid,
+                    image: "/promo-camera-control-new.png",
+                  },
+                  {
+                    title: "World Generator",
+                    desc: "Build immersive 3D environments and scenes",
+                    tag: "New",
+                    gradient: yellowSolid,
+                    image: "/promo-world-generator-new.png",
+                  },
+                  {
+                    title: "Unlimited Generations with Nano Banana",
+                    desc: "Create without limits using Google's Nano Banana model",
+                    tag: "New",
+                    gradient: blueSolid,
+                    image: "/promo-nano-banana-unlimited.png",
+                  },
+                  {
+                    title: "Time of Day",
+                    desc: "Transform the time of day in any scene or environment",
+                    tag: "New",
+                    gradient: blueSolid,
+                    image: "/promo-time-of-day.png",
+                  },
+                ].map((card) => (
+                  <button
+                    key={card.title}
+                    type="button"
+                    className="group/card relative flex h-[200px] aspect-video shrink-0 cursor-pointer flex-col justify-end gap-4 overflow-hidden rounded-xl p-5 text-left"
+                  >
+                    <img
+                      src={card.image}
+                      alt={card.title}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+            </div>
+          </div>
+
+          {/* Template sections */}
+          {templateSections.map(({ title, templates }) => (
+            <ScrollRow key={title} title={title} templates={templates} />
+          ))}
+
+          <div className="h-6" />
+          </>
+          )}
+        </div>
+        </div>
+      </div>
+
+      {modelSelectorOpen && (
+        <>
+          <div className="fixed inset-0 z-[999]" onClick={() => setModelSelectorOpen(false)} />
+          <div
+            className="fixed z-[1000] overflow-hidden overflow-y-auto rounded-xl border p-2"
+            style={{
+              background: "#252525",
+              borderColor: "rgba(255,255,255,0.08)",
+              right: selectorPos?.right,
+              ...(selectorPos?.openAbove
+                ? { bottom: window.innerHeight - selectorPos.top + 8, maxHeight: selectorPos.top - 16 }
+                : { top: selectorPos ? selectorPos.bottom + 8 : undefined, maxHeight: selectorPos ? window.innerHeight - selectorPos.bottom - 16 : undefined }),
+            }}
+          >
+            <div className="flex flex-col gap-0.5">
+              {[
+                { id: "Image", icon: Image, label: "Image" },
+                { id: "Video", icon: VideoCamera, label: "Video" },
+                { id: "Voiceover", icon: Microphone, label: "Voiceover" },
+                { id: "Music", icon: MusicNotes, label: "Music" },
+                { id: "Sound Effects", icon: Waveform, label: "Sound Effects" },
+                { id: "3D Object", icon: Cube, label: "3D Object" },
+                { id: "Find Stock", icon: MagnifyingGlass, label: "Find Stock" },
+              ].map(({ id, icon: Icon, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => { setSelectedTool(id); setModelSelectorOpen(false); }}
+                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-1.5 text-left transition-colors hover:bg-fg/5"
+                  style={{
+                    background: selectedTool === id ? "rgba(255,255,255,0.08)" : "transparent",
+                  }}
+                >
+                  <Icon weight="bold" size={14} className="text-fg/50" />
+                  <span className="text-xs font-medium text-fg/80">{label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="border-t border-white/5 pt-2 mt-1 px-1">
+              <div className="px-2 pt-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg/30">
+                Generations
+              </div>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4].map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    onClick={() => setGenerationCount(count)}
+                    className="flex h-7 cursor-pointer items-center justify-center rounded-md px-2.5 text-[11px] font-medium transition-colors hover:bg-fg/5"
+                    style={{
+                      background: generationCount === count ? "rgba(255,255,255,0.1)" : "transparent",
+                      color: generationCount === count ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    x{count}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </main>
+  );
+}

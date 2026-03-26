@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+/* Figma design variables from get_variable_defs */
+:root {
+  --surface-0: #0f0f0f;
+  --surface-1: #1c1c1c;
+  --surface-modal: #171717;
+  --surface-foreground-0: #f7f7f7;
+  --surface-foreground-2: #c8c8c8;
+  --surface-border-alpha-0: #ffffff0d;
+  --surface-border-alpha-1: #ffffff1a;
+  --primary: #336aea;
+  --primary-foreground: #f7f7f7;
+  --sidebar: #1c1c1c;
+  --selected: #343434;
+  --radius-lg: 8px;
+  --radius-base: 4px;
+  --spacing-0: 0;
+  --spacing-px: 1px;
+  --spacing-2: 8px;
+  --spacing-4: 16px;
+  --padding-2: 8px;
+  --padding-3: 12px;
+  --padding-6: 24px;
+  --padding-8: 32px;
+  --icon-xs: 14px;
+  --icon-sm: 16px;
+  --icon-lg: 20px;
+  --button-sm: 32px;
+  --font-size-xs: 12px;
+  --font-size-lg: 18px;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans, "Inter", system-ui, sans-serif);
+  /* Adaptive text colors — resolve to CSS vars so they flip with light/dark mode */
+  --color-fg: var(--surface-foreground-0);
+  --color-fg-muted: var(--surface-foreground-2);
+}
+
+body {
+  background: var(--surface-0);
+  color: var(--surface-foreground-0);
+  overscroll-behavior: none;
+}
+
+html {
+  overscroll-behavior: none;
+}
+
+@keyframes sidebar-panel-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes main-content-fade-in {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sidebar-panel-enter {
+  animation: sidebar-panel-fade-in 0.4s ease-out forwards;
+}
+
+.main-content-enter {
+  animation: main-content-fade-in 0.2s ease-out forwards;
+}
+
+@keyframes panel-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes panel-slide-back {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.panel-slide-in {
+  animation: panel-slide-in 0.25s ease-out forwards;
+}
+
+.panel-slide-back {
+  animation: panel-slide-back 0.25s ease-out forwards;
+}
+
+@keyframes tab-content-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sidebar-pin-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sidebar-pin-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+@keyframes sidebar-pin-height-in {
+  from { grid-template-rows: 0fr; }
+  to   { grid-template-rows: 1fr; }
+}
+
+@keyframes sidebar-pin-height-out {
+  from { grid-template-rows: 1fr; }
+  to   { grid-template-rows: 0fr; }
+}
+
+.sidebar-pin-outer-enter {
+  display: grid;
+  overflow: hidden;
+  animation: sidebar-pin-height-in 0.15s ease-out forwards;
+}
+
+.sidebar-pin-outer-exit {
+  display: grid;
+  overflow: hidden;
+  animation: sidebar-pin-height-out 0.15s ease-in forwards;
+}
+
+.sidebar-pin-enter {
+  min-height: 0;
+  animation: sidebar-pin-in 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.sidebar-pin-exit {
+  min-height: 0;
+  animation: sidebar-pin-out 0.15s ease-in forwards;
+}
+
+.tab-content-enter {
+  opacity: 0;
+  animation: tab-content-fade-in 0.35s ease-out 0.15s forwards;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+@keyframes badgeIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes badgeExpand {
+  0% { max-width: 0; opacity: 0; margin-left: 0; }
+  100% { max-width: 2rem; opacity: 1; margin-left: 0; }
+}
