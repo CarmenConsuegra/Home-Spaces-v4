@@ -1,20 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import {
   Heart,
   SlidersHorizontal,
   MagnifyingGlass,
 } from "@phosphor-icons/react";
 import { usePalette } from "@/contexts/PaletteContext";
+import { useAssetsFilter } from "@/contexts/AssetsFilterContext";
 import { ProjectFilter, OwnerFilter } from "@/components/FilterDropdowns";
 
 export function SpacesFilterBar() {
   const { surfaceColors: sc } = usePalette();
-
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [selectedOwner, setSelectedOwner] = useState<string | null>(null);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const {
+    selectedProject,
+    setSelectedProject,
+    selectedOwner,
+    setSelectedOwner,
+    favoritesOnly,
+    setFavoritesOnly,
+  } = useAssetsFilter();
 
   return (
     <div className="flex items-center gap-2">
@@ -33,14 +37,14 @@ export function SpacesFilterBar() {
 
       {/* Project dropdown */}
       <ProjectFilter
-        value={selectedProject}
-        onChange={setSelectedProject}
+        value={selectedProject === "All" ? null : selectedProject}
+        onChange={(val) => setSelectedProject(val || "All")}
       />
 
       {/* Owner dropdown */}
       <OwnerFilter
-        value={selectedOwner}
-        onChange={setSelectedOwner}
+        value={selectedOwner === "Anyone" ? null : selectedOwner}
+        onChange={(val) => setSelectedOwner(val || "Anyone")}
       />
 
       {/* Advanced filters icon */}
