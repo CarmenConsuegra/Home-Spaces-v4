@@ -556,7 +556,7 @@ function RecentWorkTab() {
 
 export default function GetStartedPage() {
   const spotlight = useSpotlight();
-  const [activeTab, setActiveTab] = useState("For you");
+  const [activeTab, setActiveTab] = useState("Recent work");
   const [selectedTool, setSelectedTool] = useState("Find Stock");
   const [selectedRatio, setSelectedRatio] = useState("1:1");
   const [generationCount, setGenerationCount] = useState(1);
