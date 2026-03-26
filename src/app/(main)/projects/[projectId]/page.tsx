@@ -251,12 +251,21 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
     if (!projectName) return;
     try {
       const data = JSON.parse(e.dataTransfer.getData("application/json"));
-      moveAsset(data.assetId, projectName, currentFolderName || "");
+      if (data.type === "space") {
+        moveSpace(data.spaceId, projectName);
+      } else {
+        moveAsset(data.assetId, projectName, currentFolderName || "");
+      }
     } catch { /* ignore */ }
   };
   
   // Get spaces for this project (only show on project root, not in folders)
-  const spaces = !currentFolderName && projectName ? projectSpaces[projectName] || [] : [];
+  // Filter out spaces moved away, include spaces moved here
+  const { movedSpaces, moveSpace } = useFolder();
+  const baseSpaces = !currentFolderName && projectName ? projectSpaces[projectName] || [] : [];
+  const spacesMovedAway = baseSpaces.filter(s => movedSpaces[s.id] && movedSpaces[s.id] !== projectName);
+  const spacesMovedHere = !currentFolderName ? allSpaces.filter(s => movedSpaces[s.id] === projectName && !baseSpaces.some(bs => bs.id === s.id)) : [];
+  const spaces = [...baseSpaces.filter(s => !spacesMovedAway.some(sa => sa.id === s.id)), ...spacesMovedHere];
   
 
   
@@ -372,6 +381,8 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
               {spaces.map((space) => (
                 <SpaceCard
                   key={space.id}
+                  spaceId={space.id}
+                  projectName={projectName}
                   name={space.name}
                   editedAt={space.editedAt}
                   thumbnails={space.thumbnails}

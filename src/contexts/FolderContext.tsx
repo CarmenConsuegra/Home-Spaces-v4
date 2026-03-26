@@ -116,6 +116,8 @@ type FolderContextType = {
   addProject: (name: string, color: string, cover?: string) => void;
   movedAssets: Record<string, MovedAssetLocation>;
   moveAsset: (assetId: string, toProject: string, toFolder: string) => void;
+  movedSpaces: Record<string, string>; // spaceId -> projectName
+  moveSpace: (spaceId: string, toProject: string) => void;
 };
 
 const FolderContext = createContext<FolderContextType | undefined>(undefined);
@@ -185,6 +187,7 @@ export function FolderProvider({ children }: { children: ReactNode }) {
   const [activeProject, setActiveProject] = useState<Project>(initialProjects[0]);
   const [activeFolder, setActiveFolder] = useState(initialProjects[0].folders[0]?.name ?? "");
   const [movedAssets, setMovedAssets] = useState<Record<string, MovedAssetLocation>>({});
+  const [movedSpaces, setMovedSpaces] = useState<Record<string, string>>({});
 
   const selectProject = useCallback((project: Project, folder?: string) => {
     setActiveProject(project);
@@ -255,6 +258,10 @@ export function FolderProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const moveSpace = useCallback((spaceId: string, toProject: string) => {
+    setMovedSpaces(prev => ({ ...prev, [spaceId]: toProject }));
+  }, []);
+
   const addProject = useCallback((name: string, color: string, cover?: string) => {
     const newProject: Project = {
       name,
@@ -281,6 +288,8 @@ export function FolderProvider({ children }: { children: ReactNode }) {
       addProject,
       movedAssets,
       moveAsset,
+      movedSpaces,
+      moveSpace,
     }}>
       {children}
     </FolderContext.Provider>

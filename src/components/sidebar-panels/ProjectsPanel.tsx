@@ -398,6 +398,7 @@ function ProjectRow({
   handleConfirmCreate,
   handleCancelCreate,
   handleDropAsset,
+  handleDropSpace,
 }: {
   project: Project;
   projectSlug: string;
@@ -414,6 +415,7 @@ function ProjectRow({
   handleConfirmCreate: (projectName: string, parentPath: string | null, name: string) => void;
   handleCancelCreate: () => void;
   handleDropAsset: (assetId: string, toProject: string, toFolder: string) => void;
+  handleDropSpace: (spaceId: string, toProject: string) => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -435,7 +437,11 @@ function ProjectRow({
     setIsDragOver(false);
     try {
       const data = JSON.parse(e.dataTransfer.getData("application/json"));
-      handleDropAsset(data.assetId, project.name, "");
+      if (data.type === "space") {
+        handleDropSpace(data.spaceId, project.name);
+      } else {
+        handleDropAsset(data.assetId, project.name, "");
+      }
     } catch { /* ignore */ }
   };
 
@@ -543,7 +549,7 @@ function ProjectRow({
 
 export function ProjectsPanel() {
   const pathname = usePathname();
-  const { projects, addFolder, moveAsset } = useFolder();
+  const { projects, addFolder, moveAsset, moveSpace } = useFolder();
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [creatingFolderAt, setCreatingFolderAt] = useState<string | null>(null);
@@ -581,6 +587,10 @@ export function ProjectsPanel() {
     moveAsset(assetId, toProject, toFolder);
   }, [moveAsset]);
 
+  const handleDropSpace = useCallback((spaceId: string, toProject: string) => {
+    moveSpace(spaceId, toProject);
+  }, [moveSpace]);
+
   // Start creating a root folder for a project
   const handleStartProjectFolder = (projectName: string) => {
     setExpandedProjects((prev) => ({ ...prev, [projectName]: true }));
@@ -612,6 +622,7 @@ export function ProjectsPanel() {
           handleConfirmCreate={handleConfirmCreate}
           handleCancelCreate={handleCancelCreate}
           handleDropAsset={handleDropAsset}
+          handleDropSpace={handleDropSpace}
         />
       );
     });

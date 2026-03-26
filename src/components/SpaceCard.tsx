@@ -9,19 +9,29 @@ interface SpaceCardProps {
   editedAt: string;
   thumbnails: string[];
   isFavorite?: boolean;
+  spaceId?: string;
+  projectName?: string;
 }
 
-// Matches Figma node 8588:49509
-// - Square card, single screenshot filling full area
-// - "Editor" badge bottom-left on hover (white bg, dark text)
-// - Heart toggle top-right (always visible when favorited, shown on hover)
-// - Name + date below the card
-export function SpaceCard({ name, editedAt, thumbnails, isFavorite = false }: SpaceCardProps) {
+export function SpaceCard({ name, editedAt, thumbnails, isFavorite = false, spaceId, projectName }: SpaceCardProps) {
   const thumb = thumbnails[0];
   const [favorite, setFavorite] = useState(isFavorite);
 
   return (
-    <div className="group cursor-pointer">
+    <div
+      className="group cursor-pointer"
+      draggable={!!spaceId}
+      onDragStart={(e) => {
+        if (!spaceId) return;
+        e.dataTransfer.setData("application/json", JSON.stringify({
+          type: "space",
+          spaceId,
+          spaceName: name,
+          fromProject: projectName || "",
+        }));
+        e.dataTransfer.effectAllowed = "move";
+      }}
+    >
       <div className="relative aspect-square overflow-hidden rounded-[12px] bg-[#2b2b2b]">
         {thumb && (
           <Image
