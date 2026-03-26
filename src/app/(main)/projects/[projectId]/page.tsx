@@ -137,17 +137,36 @@ function findFolder(folders: Folder[], folderName: string): Folder | null {
   return null;
 }
 
+// Extract original asset index from ID (format: "projectPath-num")
+function getAssetOriginalIndex(assetId: string): { path: string; index: number } | null {
+  const lastDash = assetId.lastIndexOf("-");
+  if (lastDash < 0) return null;
+  const path = assetId.substring(0, lastDash);
+  const num = parseInt(assetId.substring(lastDash + 1), 10);
+  if (isNaN(num)) return null;
+  return { path, index: num - 1 }; // asset-01 = index 0
+}
+
 // Assets grid that filters by favoritesOnly from the header
 function FilteredAssets({ assets, projectPath, altText, projectName, folderName }: { assets: ReturnType<typeof getProjectAssets>; projectPath: string | null; altText: string; projectName?: string; folderName?: string }) {
   const { favoritesOnly } = useProjectsFilter();
+
+  const assetsWithFav = useMemo(() => {
+    return assets.map((asset) => {
+      const orig = getAssetOriginalIndex(asset.id);
+      const fav = orig ? isAssetFavorite(orig.path, orig.index) : false;
+      return { ...asset, isFavorite: fav };
+    });
+  }, [assets]);
+
   const filtered = useMemo(() => {
-    if (!favoritesOnly) return assets;
-    return assets.filter((_, i) => projectPath ? isAssetFavorite(projectPath, i) : false);
-  }, [assets, favoritesOnly, projectPath]);
+    if (!favoritesOnly) return assetsWithFav;
+    return assetsWithFav.filter((a) => a.isFavorite);
+  }, [assetsWithFav, favoritesOnly]);
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-      {filtered.map((asset, i) => (
+      {filtered.map((asset) => (
         <AssetCard
           key={asset.id}
           src={asset.src}
@@ -155,7 +174,7 @@ function FilteredAssets({ assets, projectPath, altText, projectName, folderName 
           assetId={asset.id}
           projectName={projectName}
           folderName={folderName}
-          isFavorite={projectPath ? isAssetFavorite(projectPath, i) : false}
+          isFavorite={asset.isFavorite}
         />
       ))}
     </div>
