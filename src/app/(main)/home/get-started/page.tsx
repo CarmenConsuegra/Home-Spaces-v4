@@ -295,7 +295,7 @@ function ScrollRow({ title, templates }: { title: string; templates: { id: strin
   const { scrollRef, canScrollLeft, canScrollRight, updateScrollState, scroll } = useHorizontalScroll();
 
   return (
-    <div className="group/row relative flex flex-col gap-4">
+    <div className="group/row relative mx-auto flex w-full flex-col gap-4" style={{ maxWidth: 1200 }}>
       <div className="flex items-center justify-between">
         <h2
           className="text-xl font-medium"
@@ -652,7 +652,7 @@ export default function GetStartedPage() {
           {bottomTab === "For you" && (
           <>
           {/* Hero */}
-          <div className="group/row relative -mr-6" style={{ minHeight: 200 }}>
+          <div className="group/row relative mx-auto w-full" style={{ minHeight: 200, maxWidth: 1200 }}>
             <ScrollArrows canScrollLeft={heroScroll.canScrollLeft} canScrollRight={heroScroll.canScrollRight} scroll={heroScroll.scroll} />
             <div
               ref={heroScroll.scrollRef}
