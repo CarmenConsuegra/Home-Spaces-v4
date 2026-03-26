@@ -68,10 +68,6 @@ const recentRowImages = [
   "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&q=80",
 ];
 
-const filterTabs = [
-  { label: "For you", icon: Heart },
-  { label: "Recent work", icon: ClockCounterClockwise },
-];
 
 const modelCategories = [
   {
@@ -367,188 +363,98 @@ function parseDaysAgo(s: string): number {
   return m ? parseInt(m[1], 10) : 999;
 }
 
-// Hook: how many 124px cards fit in a container, always reserving space for the CTA
-function useFitCards(cardSize: number, gap: number, maxCards: number) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [count, setCount] = useState(maxCards);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const calc = () => {
-      const w = el.offsetWidth;
-      // CTA always takes cardSize, so available = w - cardSize - gap (for the gap before CTA)
-      const available = w - cardSize - gap;
-      const fits = Math.max(0, Math.floor((available + gap) / (cardSize + gap)));
-      setCount(Math.min(fits, maxCards));
-    };
-    calc();
-    const ro = new ResizeObserver(calc);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [cardSize, gap, maxCards]);
-
-  return [ref, count] as const;
-}
-
-function ThumbCard({ href, coverSrc, name, date, badges }: {
-  href: string;
-  coverSrc: string;
-  name: string;
-  date: string;
-  badges: React.ReactNode;
-}) {
+// List item row used inside the 3-column cards
+function ListItem({ thumb, name, date, href }: { thumb?: string; name: string; date: string; href: string }) {
   return (
-    <Link
-      href={href}
-      className="group relative shrink-0 cursor-pointer overflow-hidden rounded-xl block"
-      style={{ width: 124, height: 124 }}
-    >
-      <NextImage src={coverSrc} alt={name} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-105" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-      {badges}
-      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
-        <span className="truncate text-[12px] font-semibold text-white">{name}</span>
-        <span className="text-[10px] tracking-wide text-white/80">{date}</span>
+    <Link href={href} className="flex gap-4 items-start w-full transition-colors rounded-xl hover:bg-white/5 -mx-2 px-2 py-1">
+      <div className="size-12 shrink-0 overflow-hidden rounded-lg" style={{ background: "#424242" }}>
+        {thumb && <NextImage src={thumb} alt={name} width={48} height={48} unoptimized className="size-full object-cover" />}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col leading-[1.6]">
+        <span className="truncate text-[14px] text-fg">{name}</span>
+        <span className="text-[12px] opacity-50" style={{ color: "#737373" }}>{date}</span>
       </div>
     </Link>
   );
 }
 
-function NewCardCTA({ label, onClick }: { label: string; onClick?: () => void }) {
-  return (
-    <div
-      className="flex shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 overflow-hidden rounded-lg transition-colors hover:bg-[#333]"
-      style={{ width: 124, height: 124, background: "#2b2b2b" }}
-      onClick={onClick}
-    >
-      <div className="flex size-6 items-center justify-center rounded-md bg-white">
-        <Plus weight="bold" size={12} className="text-[#1a1a1a]" />
-      </div>
-      <span className="text-[12px] font-medium text-fg/80">{label}</span>
-    </div>
-  );
-}
-
 function RecentWorkTab() {
-  const router = useRouter();
   const sortedSpaces = [...allSpaces].sort((a, b) => parseDaysAgo(a.editedAt) - parseDaysAgo(b.editedAt));
-  const recentAssets = getProjectAssets("").slice(0, 14);
-
-  const [projectsRef, visibleProjects] = useFitCards(124, 16, projects.length);
-  const [spacesRef, visibleSpaces] = useFitCards(124, 16, sortedSpaces.length);
+  const recentAssets = getProjectAssets("").slice(0, 3);
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Top row: Projects + Spaces side by side */}
-      <div className="flex gap-4">
-        {/* Projects card */}
-        <section
-          className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
-          style={{ background: "var(--surface-1)" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-medium text-fg">Projects</span>
-            <button
-              type="button"
-              className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60"
-            >
-              <Plus weight="regular" size={12} />
-            </button>
-          </div>
-          <div ref={projectsRef} className="flex gap-4">
-            {projects.slice(0, visibleProjects).map((p) => (
-              <ThumbCard
-                key={p.name}
-                href={`/projects/${p.name.toLowerCase().replace(/\s+/g, "-")}`}
-                coverSrc={p.cover || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&h=200&fit=crop"}
-                name={p.name}
-                date="Edited 2 days ago"
-                badges={
-                  <div className="absolute left-3 top-3 flex items-center gap-1">
-                    <div className="flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
-                      {p.isTeam ? <Users weight="fill" size={12} className="text-white" /> : <Lock weight="fill" size={12} className="text-white" />}
-                    </div>
-                    <div className="flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
-                      <PushPin weight="fill" size={12} className="text-white" />
-                    </div>
-                  </div>
-                }
-              />
-            ))}
-            <NewCardCTA label="New project" />
-          </div>
-          <Link href="/projects/all-projects" className="text-[12px] font-medium transition-colors hover:text-fg/60" style={{ color: "#353535" }}>
-            View all
-          </Link>
-        </section>
-
-        {/* Spaces card */}
-        <section
-          className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
-          style={{ background: "var(--surface-1)" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-medium text-fg">Spaces</span>
-            <button
-              type="button"
-              className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60"
-              onClick={() => router.push("/spaces/new")}
-            >
-              <Plus weight="regular" size={12} />
-            </button>
-          </div>
-          <div ref={spacesRef} className="flex gap-4">
-            {sortedSpaces.slice(0, visibleSpaces).map((space) => (
-              <ThumbCard
-                key={space.id}
-                href="/spaces"
-                coverSrc={space.thumbnails[0] || ""}
-                name={space.name}
-                date={space.editedAt}
-                badges={
-                  <>
-                    <div className="absolute left-3 top-3 flex items-center gap-1">
-                      <div className="flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
-                        <Lock weight="fill" size={12} className="text-white" />
-                      </div>
-                      <div className="flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
-                        <PushPin weight="fill" size={12} className="text-white" />
-                      </div>
-                    </div>
-                    {space.isFavorite && (
-                      <div className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-full backdrop-blur-lg" style={{ background: "rgba(48,48,48,0.25)" }}>
-                        <Heart weight="fill" size={12} className="text-white" />
-                      </div>
-                    )}
-                  </>
-                }
-              />
-            ))}
-            <NewCardCTA label="New Space" onClick={() => router.push("/spaces/new")} />
-          </div>
-          <Link href="/spaces" className="text-[12px] font-medium transition-colors hover:text-fg/60" style={{ color: "#353535" }}>
-            View all
-          </Link>
-        </section>
-      </div>
-
-      {/* Assets */}
-      <section className="flex flex-col gap-3">
+    <div className="flex gap-6">
+      {/* Projects */}
+      <section
+        className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
+        style={{ background: "#1a1a1a" }}
+      >
         <div className="flex items-center justify-between">
-          <span className="text-[14px] font-semibold text-fg">Assets</span>
-          <button
-            type="button"
-            className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60"
-          >
-            <Plus weight="bold" size={14} />
+          <span className="text-[12px] font-medium text-fg">Projects</span>
+          <button type="button" className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60">
+            <Plus weight="regular" size={12} />
           </button>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
-          {recentAssets.map((asset, i) => (
-            <AssetCard key={i} src={asset.src} />
-          ))}
+        {projects.slice(0, 3).map((p) => (
+          <ListItem
+            key={p.name}
+            href={`/projects/${p.name.toLowerCase().replace(/\s+/g, "-")}`}
+            thumb={p.cover}
+            name={p.name}
+            date="Today"
+          />
+        ))}
+        <Link href="/projects/all-projects" className="text-[12px] font-medium transition-colors hover:text-fg/40" style={{ color: "#e3e3e3" }}>
+          View all
+        </Link>
+      </section>
+
+      {/* Spaces */}
+      <section
+        className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
+        style={{ background: "#1a1a1a" }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-[12px] font-medium text-fg">Spaces</span>
+          <button type="button" className="flex size-6 items-center justify-center rounded-md text-fg/40 transition-colors hover:bg-white/5 hover:text-fg/60">
+            <Plus weight="regular" size={12} />
+          </button>
         </div>
+        {sortedSpaces.slice(0, 3).map((space) => (
+          <ListItem
+            key={space.id}
+            href="/spaces"
+            thumb={space.thumbnails[0]}
+            name={space.name}
+            date={space.editedAt}
+          />
+        ))}
+        <Link href="/spaces" className="text-[12px] font-medium transition-colors hover:text-fg/40" style={{ color: "#e3e3e3" }}>
+          View all
+        </Link>
+      </section>
+
+      {/* Assets */}
+      <section
+        className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
+        style={{ background: "#1a1a1a" }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-[12px] font-medium text-fg">Assets</span>
+          <span className="size-6" />
+        </div>
+        {recentAssets.map((asset, i) => (
+          <ListItem
+            key={i}
+            href="/projects/all-assets"
+            thumb={asset.src}
+            name={asset.projectName || "Untitled asset"}
+            date="Today"
+          />
+        ))}
+        <Link href="/projects/all-assets" className="text-[12px] font-medium transition-colors hover:text-fg/40" style={{ color: "#e3e3e3" }}>
+          View all
+        </Link>
       </section>
     </div>
   );
@@ -556,7 +462,6 @@ function RecentWorkTab() {
 
 export default function GetStartedPage() {
   const spotlight = useSpotlight();
-  const [activeTab, setActiveTab] = useState("Recent work");
   const [selectedTool, setSelectedTool] = useState("Find Stock");
   const [selectedRatio, setSelectedRatio] = useState("1:1");
   const [generationCount, setGenerationCount] = useState(1);
@@ -769,34 +674,14 @@ export default function GetStartedPage() {
             className="pointer-events-auto flex flex-col gap-4 rounded-2xl px-6 py-4"
             style={{ background: sc.panel, minHeight: "100%" }}
           >
-          {/* Tabs + Search */}
-          <div
-            className="sticky top-0 z-20 -mx-6 flex items-center gap-6 rounded-t-2xl px-6 pb-4 pt-4 -mt-4"
-            style={{ background: sc.panel }}
-          >
-            <div className="flex flex-1 items-center gap-1">
-              {filterTabs.map(({ label, icon: Icon }) => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => setActiveTab(label)}
-                  className="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors"
-                  style={{
-                    background: activeTab === label ? sc.button : "transparent",
-                    color: activeTab === label ? "var(--surface-foreground-0)" : "var(--surface-foreground-2)",
-                  }}
-                >
-                  <Icon weight="bold" size={14} />
-                  {label}
-                </button>
-              ))}
-            </div>
+          {/* Projects / Spaces / Assets — 3 columns */}
+          <RecentWorkTab />
+
+          {/* For you */}
+          <div className="flex items-start pt-4">
+            <span className="text-[20px] text-fg">For you</span>
           </div>
 
-          {activeTab === "Recent work" ? (
-            <RecentWorkTab />
-          ) : (
-          <>
           {/* Hero */}
           <div className="group/row relative -mr-6" style={{ minHeight: 200 }}>
             <ScrollArrows canScrollLeft={heroScroll.canScrollLeft} canScrollRight={heroScroll.canScrollRight} scroll={heroScroll.scroll} />
@@ -906,8 +791,6 @@ export default function GetStartedPage() {
           ))}
 
           <div className="h-6" />
-          </>
-          )}
         </div>
         </div>
       </div>
