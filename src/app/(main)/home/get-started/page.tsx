@@ -586,27 +586,29 @@ export default function GetStartedPage() {
             </div>
           </div>
 
-          {/* Tools row — single line of 6 */}
+          {/* Tools row — single line of 6, pixel-perfect from Figma */}
           <div className="flex gap-4 pt-10 pb-8">
             {[
-              { label: "Create a Space", icon: TreeStructure, desc: "Build creative workflows on an infinite canvas", bgColor: paletteColors.spaces.bg, iconColor: paletteColors.spaces.icon, href: "/spaces" },
-              { label: "Generate Image", icon: Image, desc: "Generate stunning images from text prompts", bgColor: paletteColors.image.bg, iconColor: paletteColors.image.icon, href: "/ai-suite" },
-              { label: "Generate Video", icon: VideoCamera, desc: "Generate cinematic video clips from text or images", bgColor: paletteColors.video.bg, iconColor: paletteColors.video.icon, href: "/video" },
-              { label: "Generate Audio", icon: Microphone, desc: "Generate natural-sounding voiceovers and music", bgColor: paletteColors.audio.bg, iconColor: paletteColors.audio.icon, href: "/audio" },
-              { label: "Generate 3D", icon: Cube, desc: "Generate 3D models from text or image input", bgColor: paletteColors["3d"].bg, iconColor: paletteColors["3d"].icon, href: "/3d" },
-              { label: "Find stock", icon: MagnifyingGlass, desc: "Search millions of stock photos, vectors and more", bgColor: paletteColors.stock.bg, iconColor: paletteColors.stock.icon, href: "/stock" },
-            ].map(({ label, icon: Icon, desc, bgColor, iconColor, href }) => (
+              { label: "Create a Space", icon: "/icons/tool-spaces.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(192,129,222,0.1)", href: "/spaces" },
+              { label: "Generate Image", icon: "/icons/tool-image.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(131,115,255,0.1)", href: "/ai-suite" },
+              { label: "Generate Video", icon: "/icons/tool-video.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(16,201,141,0.1)", href: "/video" },
+              { label: "Generate Audio", icon: "/icons/tool-audio.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(121,209,219,0.1)", href: "/audio" },
+              { label: "Generate 3D", icon: "/icons/tool-3d.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(231,173,22,0.1)", href: "/3d" },
+              { label: "Find stock", icon: "/icons/tool-stock.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(255,255,255,0.05)", href: "/stock" },
+            ].map(({ label, icon, desc, bg, href }) => (
               <Link
                 key={label}
                 href={href}
-                className="flex min-w-0 flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 transition-colors hover:bg-white/5"
+                className="flex min-w-0 flex-1 cursor-pointer flex-col rounded-2xl p-4 transition-colors hover:bg-white/5"
               >
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-lg" style={{ background: bgColor }}>
-                  <Icon weight="bold" size={20} style={{ color: iconColor }} />
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[16px] font-medium leading-[1.6] text-fg">{label}</span>
-                  <span className="text-[12px] leading-[1.6]" style={{ color: "#424242" }}>{desc}</span>
+                <div className="flex flex-col gap-3">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-lg" style={{ background: bg }}>
+                    <img src={icon} alt="" className="size-5" />
+                  </div>
+                  <div className="flex flex-col leading-[1.6]">
+                    <span className="text-[16px] font-medium" style={{ color: "#f5f5f5" }}>{label}</span>
+                    <span className="text-[12px]" style={{ color: "#424242" }}>{desc}</span>
+                  </div>
                 </div>
               </Link>
             ))}
