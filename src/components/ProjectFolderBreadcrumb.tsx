@@ -4,7 +4,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useFolder, type Folder, type Project, type TeamMember } from "@/contexts/FolderContext";
-import { MagnifyingGlass, CaretDown, CaretRight, FolderSimple, Plus, Users, Check, X, LockSimple } from "@phosphor-icons/react";
+import { MagnifyingGlass, CaretDown, CaretRight, FolderSimple, Plus, Users, Check, X, LockSimple, ArrowSquareOut } from "@phosphor-icons/react";
+import Link from "next/link";
 
 
 
@@ -372,6 +373,20 @@ export function ProjectFolderBreadcrumb() {
         )}
         <CaretDown weight="bold" size={10} className="ml-0.5 text-fg/40" />
       </button>
+
+      {/* Direct link to project/folder */}
+      <Link
+        href={
+          activeFolder
+            ? `/projects/${activeProject.name.toLowerCase().replace(/\s+/g, "-")}?folder=${encodeURIComponent(activeFolder)}`
+            : `/projects/${activeProject.name.toLowerCase().replace(/\s+/g, "-")}`
+        }
+        className="flex size-8 shrink-0 items-center justify-center rounded-lg border transition-colors hover:bg-white/10"
+        style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--surface-foreground-0)" }}
+        title="Go to project"
+      >
+        <ArrowSquareOut weight="bold" size={14} />
+      </Link>
 
       {/* Combined picker portal */}
       {pickerOpen && createPortal(
