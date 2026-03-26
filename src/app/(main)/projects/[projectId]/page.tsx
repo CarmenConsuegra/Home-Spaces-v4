@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, Suspense } from "react";
+import { use, useMemo, useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,18 +23,43 @@ import {
 
 
 // Folder Card Component - matches Figma design (node 8889:51500)
-function FolderCard({ name, assets, thumbnails }: { name: string; assets: number; thumbnails: string[] }) {
+function FolderCard({ name, assets, thumbnails, projectName, onDrop: onDropProp }: { name: string; assets: number; thumbnails: string[]; projectName?: string; onDrop?: (assetId: string, assetSrc: string, fromProject: string, fromFolder: string) => void }) {
+  const [isDragOver, setIsDragOver] = useState(false);
   const placeholder = "/placeholder.svg?height=100&width=100";
   const thumb1 = thumbnails[0] || placeholder;
   const thumb2 = thumbnails[1] || thumb1;
   const thumb3 = thumbnails[2] || thumb1;
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+      onDropProp?.(data.assetId, data.assetSrc, data.fromProject, data.fromFolder);
+    } catch { /* ignore */ }
+  };
+
   return (
-    <div className="group relative flex h-[200px] w-[200px] shrink-0 cursor-pointer flex-col items-start justify-end">
+    <div
+      className={`group relative flex h-[200px] w-[200px] shrink-0 cursor-pointer flex-col items-start justify-end transition-all ${isDragOver ? "scale-105 ring-2 ring-blue-500/60" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       {/* Folder tab — 100px wide, 29px tall, top-left */}
       <div className="absolute left-0 top-0 h-[29px] w-[100px] rounded-tl-[12px] rounded-tr-[12px] bg-[#353535]" />
       {/* Folder body — 187px tall, full width */}
-      <div className="relative flex h-[187px] w-full flex-col gap-[10px] rounded-[12px] bg-[#2b2b2b] p-[18px]">
+      <div className={`relative flex h-[187px] w-full flex-col gap-[10px] rounded-[12px] p-[18px] ${isDragOver ? "bg-[#333]" : "bg-[#2b2b2b]"}`}>
         {/* Image area: left col (1 tall) + right col (2 stacked) */}
         <div className="flex min-h-0 flex-1 gap-[6px]">
           <div className="relative flex-1 overflow-hidden rounded-[4px]">
@@ -113,7 +138,7 @@ function findFolder(folders: Folder[], folderName: string): Folder | null {
 }
 
 // Assets grid that filters by favoritesOnly from the header
-function FilteredAssets({ assets, projectPath, altText }: { assets: ReturnType<typeof getProjectAssets>; projectPath: string | null; altText: string }) {
+function FilteredAssets({ assets, projectPath, altText, projectName, folderName }: { assets: ReturnType<typeof getProjectAssets>; projectPath: string | null; altText: string; projectName?: string; folderName?: string }) {
   const { favoritesOnly } = useProjectsFilter();
   const filtered = useMemo(() => {
     if (!favoritesOnly) return assets;
@@ -127,6 +152,9 @@ function FilteredAssets({ assets, projectPath, altText }: { assets: ReturnType<t
           key={asset.id}
           src={asset.src}
           alt={altText}
+          assetId={asset.id}
+          projectName={projectName}
+          folderName={folderName}
           isFavorite={projectPath ? isAssetFavorite(projectPath, i) : false}
         />
       ))}
@@ -149,7 +177,8 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
   const searchParams = useSearchParams();
   const { surfaceColors: sc } = usePalette();
   const createModal = useCreateModal();
-  const { projects } = useFolder();
+  const { projects, movedAssets, moveAsset } = useFolder();
+  const [isDragOverRoot, setIsDragOverRoot] = useState(false);
   
   // Get folder from URL query param
   const currentFolderName = searchParams.get("folder") || "";
@@ -164,11 +193,67 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
     ? findFolder(project.folders, currentFolderName) 
     : null;
   
-  // Get assets for this project/folder from shared data
+  // Get assets for this project/folder from shared data, accounting for moves
   const assets = useMemo(() => {
     if (!projectName) return [];
-    return getProjectAssets(projectName, currentFolderName);
-  }, [projectName, currentFolderName]);
+    const baseAssets = getProjectAssets(projectName, currentFolderName);
+    // Filter out assets that have been moved away from this location
+    const remaining = baseAssets.filter(asset => {
+      const moved = movedAssets[asset.id];
+      if (!moved) return true; // not moved, stays in original location
+      // If moved, only show if it was moved TO this exact location
+      return moved.projectName === projectName && moved.folder === (currentFolderName || "");
+    });
+    // Add assets moved TO this location from elsewhere
+    const movedHere = Object.entries(movedAssets)
+      .filter(([, loc]) => loc.projectName === projectName && loc.folder === (currentFolderName || ""))
+      .map(([assetId]) => assetId);
+    // Find assets moved here that aren't already in baseAssets
+    const existingIds = new Set(baseAssets.map(a => a.id));
+    const extraAssets = movedHere
+      .filter(id => !existingIds.has(id))
+      .map(id => {
+        // Reconstruct asset info from the ID (format: "projectPath-num")
+        const lastDash = id.lastIndexOf("-");
+        const origPath = id.substring(0, lastDash);
+        const num = id.substring(lastDash + 1);
+        return {
+          id,
+          src: `/projects/${origPath}/asset-${num.padStart(2, "0")}.jpg`,
+          folder: currentFolderName || "",
+          projectName,
+          projectPath: projectPathMap[projectName] || "",
+        };
+      });
+    return [...remaining, ...extraAssets];
+  }, [projectName, currentFolderName, movedAssets]);
+
+  // Drop handler for folders and root
+  const handleFolderDrop = (folderName: string) => (assetId: string) => {
+    if (projectName) {
+      moveAsset(assetId, projectName, folderName);
+    }
+  };
+
+  const handleRootDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setIsDragOverRoot(true);
+  };
+
+  const handleRootDragLeave = () => {
+    setIsDragOverRoot(false);
+  };
+
+  const handleRootDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverRoot(false);
+    if (!projectName) return;
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+      moveAsset(data.assetId, projectName, currentFolderName || "");
+    } catch { /* ignore */ }
+  };
   
   // Get spaces for this project (only show on project root, not in folders)
   const spaces = !currentFolderName && projectName ? projectSpaces[projectName] || [] : [];
@@ -214,6 +299,8 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
                       name={subfolder.name}
                       assets={getFolderAssetCount(projectName, subfolder.name)}
                       thumbnails={getFolderThumbnails(projectName, subfolder.name)}
+                      projectName={projectName}
+                      onDrop={(assetId) => handleFolderDrop(subfolder.name)(assetId)}
                     />
                   </div>
                 ))}
@@ -221,18 +308,23 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
             </section>
           )}
           
-          {/* Assets in this folder */}
-          <section>
+          {/* Assets in this folder — drop zone */}
+          <section
+            onDragOver={handleRootDragOver}
+            onDragLeave={handleRootDragLeave}
+            onDrop={handleRootDrop}
+            className={`rounded-xl transition-colors ${isDragOverRoot ? "bg-blue-500/10 ring-2 ring-blue-500/30" : ""}`}
+          >
             <div className="mb-4 flex items-center gap-2">
               <span className="text-[14px] font-medium text-fg">Assets</span>
               <span className="text-[13px] text-fg/50">({assets.length})</span>
             </div>
             {assets.length > 0 ? (
-              <FilteredAssets assets={assets} projectPath={projectPath} altText={`${project.name} - ${currentFolderName}`} />
+              <FilteredAssets assets={assets} projectPath={projectPath} altText={`${project.name} - ${currentFolderName}`} projectName={projectName} folderName={currentFolderName} />
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-fg/10 py-16">
+              <div className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-16 ${isDragOverRoot ? "border-blue-500/40" : "border-fg/10"}`}>
                 <FolderSimple weight="thin" size={48} className="text-fg/20" />
-                <p className="mt-3 text-[14px] text-fg/50">No assets in this folder</p>
+                <p className="mt-3 text-[14px] text-fg/50">{isDragOverRoot ? "Drop asset here" : "No assets in this folder"}</p>
                 <p className="mt-1 text-[12px] text-fg/30">Upload or generate assets to get started</p>
               </div>
             )}
@@ -260,6 +352,8 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
                   name={folder.name}
                   assets={getFolderAssetCount(projectName, folder.name)}
                   thumbnails={getFolderThumbnails(projectName, folder.name)}
+                  projectName={projectName}
+                  onDrop={(assetId) => handleFolderDrop(folder.name)(assetId)}
                 />
               </div>
             ))}
@@ -288,14 +382,19 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
           </section>
         )}
 
-        {/* Assets Section */}
-        <section>
+        {/* Assets Section — drop zone */}
+        <section
+          onDragOver={handleRootDragOver}
+          onDragLeave={handleRootDragLeave}
+          onDrop={handleRootDrop}
+          className={`rounded-xl p-2 transition-colors ${isDragOverRoot ? "bg-blue-500/10 ring-2 ring-blue-500/30" : ""}`}
+        >
           <div className="mb-4 flex items-center gap-2">
             <span className="text-[14px] font-medium text-fg">Assets</span>
             <span className="text-[13px] text-fg/50">({assets.length})</span>
             <CaretDown weight="bold" size={12} className="text-fg/50" />
           </div>
-          <FilteredAssets assets={assets} projectPath={projectPath} altText={project.name} />
+          <FilteredAssets assets={assets} projectPath={projectPath} altText={project.name} projectName={projectName} folderName="" />
         </section>
       </div>
     </ProjectsLayout>

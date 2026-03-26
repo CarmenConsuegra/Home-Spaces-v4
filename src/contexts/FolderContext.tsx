@@ -101,6 +101,8 @@ const initialProjects: Project[] = [
 // Export for components that need to read the list
 export const getInitialProjects = () => initialProjects;
 
+type MovedAssetLocation = { projectName: string; folder: string };
+
 type FolderContextType = {
   projects: Project[];
   highlightedFolderKey: string | null;
@@ -112,6 +114,8 @@ type FolderContextType = {
   addFolder: (projectName: string, parentPath: string | null, folderName: string) => void;
   renameFolder: (projectName: string, folderPath: string, newName: string) => void;
   addProject: (name: string, color: string, cover?: string) => void;
+  movedAssets: Record<string, MovedAssetLocation>;
+  moveAsset: (assetId: string, toProject: string, toFolder: string) => void;
 };
 
 const FolderContext = createContext<FolderContextType | undefined>(undefined);
@@ -180,6 +184,7 @@ export function FolderProvider({ children }: { children: ReactNode }) {
   const [highlightedFolderKey, setHighlightedFolderKey] = useState<string | null>(null);
   const [activeProject, setActiveProject] = useState<Project>(initialProjects[0]);
   const [activeFolder, setActiveFolder] = useState(initialProjects[0].folders[0]?.name ?? "");
+  const [movedAssets, setMovedAssets] = useState<Record<string, MovedAssetLocation>>({});
 
   const selectProject = useCallback((project: Project, folder?: string) => {
     setActiveProject(project);
@@ -243,6 +248,13 @@ export function FolderProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const moveAsset = useCallback((assetId: string, toProject: string, toFolder: string) => {
+    setMovedAssets(prev => ({
+      ...prev,
+      [assetId]: { projectName: toProject, folder: toFolder },
+    }));
+  }, []);
+
   const addProject = useCallback((name: string, color: string, cover?: string) => {
     const newProject: Project = {
       name,
@@ -267,6 +279,8 @@ export function FolderProvider({ children }: { children: ReactNode }) {
       addFolder,
       renameFolder,
       addProject,
+      movedAssets,
+      moveAsset,
     }}>
       {children}
     </FolderContext.Provider>

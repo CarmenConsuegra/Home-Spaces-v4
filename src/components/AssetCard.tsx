@@ -16,11 +16,14 @@ import {
   CaretDown,
 } from "@phosphor-icons/react";
 import { MoveAssetModal } from "./MoveAssetModal";
+import { useFolder } from "@/contexts/FolderContext";
 
 interface AssetCardProps {
   src: string;
   alt?: string;
+  assetId?: string;
   projectName?: string;
+  folderName?: string;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
 }
@@ -28,7 +31,9 @@ interface AssetCardProps {
 export function AssetCard({
   src,
   alt = "Asset",
+  assetId,
   projectName,
+  folderName,
   isFavorite = false,
   onToggleFavorite,
 }: AssetCardProps) {
@@ -36,6 +41,7 @@ export function AssetCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [favorite, setFavorite] = useState(isFavorite);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
+  const { moveAsset } = useFolder();
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -43,9 +49,24 @@ export function AssetCard({
     onToggleFavorite?.();
   };
 
-  const handleMoveAsset = (projectId: string, folderId?: string) => {
-    console.log("Moving asset to:", projectId, folderId);
-    // In a real app, this would move the asset
+  const handleMoveAsset = (toProject: string, toFolder?: string) => {
+    if (assetId) {
+      moveAsset(assetId, toProject, toFolder || "");
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!assetId) return;
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        assetId,
+        assetSrc: src,
+        fromProject: projectName || "",
+        fromFolder: folderName || "",
+      })
+    );
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const menuItems = [
@@ -59,6 +80,8 @@ export function AssetCard({
   return (
     <>
       <div
+        draggable={!!assetId}
+        onDragStart={handleDragStart}
         className={`group relative rounded-xl ${menuOpen ? "z-50" : ""} ${isHovered && !menuOpen ? "overflow-hidden" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => { setIsHovered(false); setMenuOpen(false); }}

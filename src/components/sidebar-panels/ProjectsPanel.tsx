@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, type DragEvent as ReactDragEvent } from "react";
 import { createPortal } from "react-dom";
 import {
   Stack,
@@ -213,6 +213,7 @@ function FolderItem({
   onStartCreate,
   onConfirmCreate,
   onCancelCreate,
+  onDropAsset,
 }: {
   folder: Folder;
   project: { name: string; color: string; cover?: string; folders: Folder[]; isTeam?: boolean; isPrivate?: boolean };
@@ -225,10 +226,12 @@ function FolderItem({
   onStartCreate: (key: string) => void;
   onConfirmCreate: (projectName: string, parentPath: string | null, name: string) => void;
   onCancelCreate: () => void;
+  onDropAsset: (assetId: string, toProject: string, toFolder: string) => void;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const folderPath = parentPath ? `${parentPath}/${folder.name}` : folder.name;
   const fullKey = `${projectName}/${folderPath}`;
@@ -246,21 +249,47 @@ function FolderItem({
 
   const indentPx = 12 + depth * 14;
 
+  const handleDragOver = (e: ReactDragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: ReactDragEvent) => {
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: ReactDragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+      onDropAsset(data.assetId, projectName, folder.name);
+    } catch { /* ignore */ }
+  };
+
   return (
     <li>
       <div
-        className="group flex h-8 w-full items-center gap-2 rounded-lg pr-2 text-left text-[12px] font-medium transition-colors"
+        className={`group flex h-8 w-full items-center gap-2 rounded-lg pr-2 text-left text-[12px] font-medium transition-colors ${isDragOver ? "ring-1 ring-blue-500/60" : ""}`}
         style={{
           paddingLeft: `${indentPx}px`,
           color: "var(--surface-foreground-0)",
-          background: isHighlighted ? "var(--selected)" : "transparent",
+          background: isDragOver ? "rgba(59,130,246,0.15)" : isHighlighted ? "var(--selected)" : "transparent",
         }}
         onMouseEnter={(e) => {
-          if (!isHighlighted) e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+          if (!isHighlighted && !isDragOver) e.currentTarget.style.background = "rgba(255,255,255,0.05)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.background = isHighlighted ? "var(--selected)" : "transparent";
+          setIsDragOver(false);
         }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         {/* Expand/navigate toggle */}
         {hasChildren && !atMaxDepth ? (
@@ -344,6 +373,7 @@ function FolderItem({
               onStartCreate={onStartCreate}
               onConfirmCreate={onConfirmCreate}
               onCancelCreate={onCancelCreate}
+              onDropAsset={onDropAsset}
             />
           ))}
         </ul>
@@ -352,9 +382,168 @@ function FolderItem({
   );
 }
 
+function ProjectRow({
+  project,
+  projectSlug,
+  isProjectHighlighted,
+  isExpanded,
+  isCreatingRootFolder,
+  toggleProject,
+  openContextMenu,
+  contextMenu,
+  expandedFolders,
+  toggleFolder,
+  creatingFolderAt,
+  handleStartCreate,
+  handleConfirmCreate,
+  handleCancelCreate,
+  handleDropAsset,
+}: {
+  project: Project;
+  projectSlug: string;
+  isProjectHighlighted: boolean;
+  isExpanded: boolean;
+  isCreatingRootFolder: boolean;
+  toggleProject: (name: string) => void;
+  openContextMenu: (project: Project, btn: HTMLButtonElement) => void;
+  contextMenu: { project: Project; rect: { top: number; left: number } } | null;
+  expandedFolders: Record<string, boolean>;
+  toggleFolder: (key: string) => void;
+  creatingFolderAt: string | null;
+  handleStartCreate: (key: string) => void;
+  handleConfirmCreate: (projectName: string, parentPath: string | null, name: string) => void;
+  handleCancelCreate: () => void;
+  handleDropAsset: (assetId: string, toProject: string, toFolder: string) => void;
+}) {
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDragOver = (e: ReactDragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: ReactDragEvent) => {
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: ReactDragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+      handleDropAsset(data.assetId, project.name, "");
+    } catch { /* ignore */ }
+  };
+
+  return (
+    <li key={project.name}>
+      <div
+        className={`group flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg pl-1 pr-1 text-left text-[12px] font-medium transition-colors ${isDragOver ? "ring-1 ring-blue-500/60" : ""}`}
+        style={{
+          color: "var(--surface-foreground-0)",
+          background: isDragOver ? "rgba(59,130,246,0.15)" : isProjectHighlighted ? "var(--selected)" : "transparent",
+        }}
+        onMouseEnter={(e) => {
+          if (!isProjectHighlighted && !isDragOver) e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = isProjectHighlighted ? "var(--selected)" : "transparent";
+          setIsDragOver(false);
+        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); toggleProject(project.name); }}
+          className="flex shrink-0 cursor-pointer items-center justify-center rounded transition-colors -ml-1"
+          style={{ padding: 0 }}
+          aria-label={isExpanded ? "Collapse" : "Expand"}
+        >
+          <CaretDown
+            weight="bold"
+            size={14}
+            className={`shrink-0 opacity-50 transition-transform ${isExpanded ? "rotate-0" : "-rotate-90"}`}
+            style={{ transition: "transform 0.2s" }}
+          />
+        </button>
+        <Link
+          href={`/projects/${projectSlug}`}
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg py-1 pr-1 text-left"
+          style={{ color: "inherit" }}
+        >
+          {project.cover ? (
+            <div className="size-3.5 shrink-0 overflow-hidden rounded" style={{ borderRadius: "4px" }}>
+              <Image src={project.cover} alt={project.name} width={14} height={14} unoptimized className="size-full object-cover" />
+            </div>
+          ) : (
+            <span className="size-3.5 shrink-0 rounded" style={{ background: project.color, borderRadius: "4px" }} />
+          )}
+          <span className="min-w-0 flex-1 truncate">{project.name}</span>
+          {project.isPrivate && <LockSimple weight="bold" size={12} className="shrink-0 opacity-40" />}
+          {project.teamMembers && project.teamMembers.length > 0 && (
+            <Users weight="fill" size={14} className="shrink-0 text-fg/40" />
+          )}
+        </Link>
+        {/* Context menu trigger on hover */}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); openContextMenu(project, e.currentTarget); }}
+          className="flex shrink-0 items-center justify-center rounded opacity-0 transition-opacity group-hover:opacity-50 hover:!opacity-100 size-4"
+          style={{ background: contextMenu?.project.name === project.name ? "rgba(255,255,255,0.1)" : undefined }}
+          aria-label="Project options"
+        >
+          <DotsThree weight="bold" size={14} />
+        </button>
+      </div>
+
+      <div
+        className={isExpanded ? "overflow-y-auto overflow-x-hidden" : "overflow-hidden"}
+        style={{
+          maxHeight: isExpanded ? 800 : 0,
+          opacity: isExpanded ? 1 : 0,
+          transition: `max-height 0.2s ${isExpanded ? "ease-in-out" : "ease-out"}, opacity 0.2s`,
+        }}
+      >
+        <ul className="ml-2 mt-0.5 border-l pb-0.5" style={{ borderColor: "transparent" }}>
+          {project.folders.map((folder) => (
+            <FolderItem
+              key={folder.name}
+              folder={folder}
+              project={project}
+              projectName={project.name}
+              parentPath=""
+              depth={0}
+              expandedFolders={expandedFolders}
+              toggleFolder={toggleFolder}
+              creatingSubfolderAt={creatingFolderAt}
+              onStartCreate={handleStartCreate}
+              onConfirmCreate={handleConfirmCreate}
+              onCancelCreate={handleCancelCreate}
+              onDropAsset={handleDropAsset}
+            />
+          ))}
+          {isCreatingRootFolder && (
+            <NewFolderInput
+              depth={0}
+              onConfirm={(name) => handleConfirmCreate(project.name, null, name)}
+              onCancel={handleCancelCreate}
+            />
+          )}
+        </ul>
+      </div>
+    </li>
+  );
+}
+
 export function ProjectsPanel() {
   const pathname = usePathname();
-  const { projects, addFolder } = useFolder();
+  const { projects, addFolder, moveAsset } = useFolder();
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [creatingFolderAt, setCreatingFolderAt] = useState<string | null>(null);
@@ -388,6 +577,10 @@ export function ProjectsPanel() {
 
   const handleCancelCreate = () => setCreatingFolderAt(null);
 
+  const handleDropAsset = useCallback((assetId: string, toProject: string, toFolder: string) => {
+    moveAsset(assetId, toProject, toFolder);
+  }, [moveAsset]);
+
   // Start creating a root folder for a project
   const handleStartProjectFolder = (projectName: string) => {
     setExpandedProjects((prev) => ({ ...prev, [projectName]: true }));
@@ -402,99 +595,24 @@ export function ProjectsPanel() {
       const isCreatingRootFolder = creatingFolderAt === `__root__${project.name}`;
 
       return (
-        <li key={project.name}>
-          <div
-            className="group flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg pl-1 pr-1 text-left text-[12px] font-medium transition-colors"
-            style={{
-              color: "var(--surface-foreground-0)",
-              background: isProjectHighlighted ? "var(--selected)" : "transparent",
-            }}
-            onMouseEnter={(e) => {
-              if (!isProjectHighlighted) e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = isProjectHighlighted ? "var(--selected)" : "transparent";
-            }}
-          >
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); toggleProject(project.name); }}
-              className="flex shrink-0 cursor-pointer items-center justify-center rounded transition-colors -ml-1"
-              style={{ padding: 0 }}
-              aria-label={isExpanded ? "Collapse" : "Expand"}
-            >
-              <CaretDown
-                weight="bold"
-                size={14}
-                className={`shrink-0 opacity-50 transition-transform ${isExpanded ? "rotate-0" : "-rotate-90"}`}
-                style={{ transition: "transform 0.2s" }}
-              />
-            </button>
-            <Link
-              href={`/projects/${projectSlug}`}
-              className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg py-1 pr-1 text-left"
-              style={{ color: "inherit" }}
-            >
-              {project.cover ? (
-                <div className="size-3.5 shrink-0 overflow-hidden rounded" style={{ borderRadius: "4px" }}>
-                  <Image src={project.cover} alt={project.name} width={14} height={14} unoptimized className="size-full object-cover" />
-                </div>
-              ) : (
-                <span className="size-3.5 shrink-0 rounded" style={{ background: project.color, borderRadius: "4px" }} />
-              )}
-              <span className="min-w-0 flex-1 truncate">{project.name}</span>
-              {project.isPrivate && <LockSimple weight="bold" size={12} className="shrink-0 opacity-40" />}
-              {project.teamMembers && project.teamMembers.length > 0 && (
-                <Users weight="fill" size={14} className="shrink-0 text-fg/40" />
-              )}
-            </Link>
-            {/* Context menu trigger on hover */}
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); openContextMenu(project, e.currentTarget); }}
-              className="flex shrink-0 items-center justify-center rounded opacity-0 transition-opacity group-hover:opacity-50 hover:!opacity-100 size-4"
-              style={{ background: contextMenu?.project.name === project.name ? "rgba(255,255,255,0.1)" : undefined }}
-              aria-label="Project options"
-            >
-              <DotsThree weight="bold" size={14} />
-            </button>
-          </div>
-
-          <div
-            className={isExpanded ? "overflow-y-auto overflow-x-hidden" : "overflow-hidden"}
-            style={{
-              maxHeight: isExpanded ? 800 : 0,
-              opacity: isExpanded ? 1 : 0,
-              transition: `max-height 0.2s ${isExpanded ? "ease-in-out" : "ease-out"}, opacity 0.2s`,
-            }}
-          >
-            <ul className="ml-2 mt-0.5 border-l pb-0.5" style={{ borderColor: "transparent" }}>
-              {project.folders.map((folder) => (
-                <FolderItem
-                  key={folder.name}
-                  folder={folder}
-                  project={project}
-                  projectName={project.name}
-                  parentPath=""
-                  depth={0}
-                  expandedFolders={expandedFolders}
-                  toggleFolder={toggleFolder}
-                  creatingSubfolderAt={creatingFolderAt}
-                  onStartCreate={handleStartCreate}
-                  onConfirmCreate={handleConfirmCreate}
-                  onCancelCreate={handleCancelCreate}
-                />
-              ))}
-              {isCreatingRootFolder && (
-                <NewFolderInput
-                  depth={0}
-                  onConfirm={(name) => handleConfirmCreate(project.name, null, name)}
-                  onCancel={handleCancelCreate}
-                />
-              )}
-            </ul>
-          </div>
-        </li>
+        <ProjectRow
+          key={project.name}
+          project={project}
+          projectSlug={projectSlug}
+          isProjectHighlighted={isProjectHighlighted}
+          isExpanded={!!isExpanded}
+          isCreatingRootFolder={isCreatingRootFolder}
+          toggleProject={toggleProject}
+          openContextMenu={openContextMenu}
+          contextMenu={contextMenu}
+          expandedFolders={expandedFolders}
+          toggleFolder={toggleFolder}
+          creatingFolderAt={creatingFolderAt}
+          handleStartCreate={handleStartCreate}
+          handleConfirmCreate={handleConfirmCreate}
+          handleCancelCreate={handleCancelCreate}
+          handleDropAsset={handleDropAsset}
+        />
       );
     });
 
