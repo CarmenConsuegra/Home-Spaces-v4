@@ -414,12 +414,13 @@ export function Sidebar() {
 
 
   const activeNavId = !mounted
-    ? "folders"
+    ? "home"
     : (pathname === "/academy" || pathname.startsWith("/academy/"))
       ? "academy"
       : (pathname === "/stock" || pathname.startsWith("/stock/"))
         ? "search"
         : (navItems.find(({ href }) =>
+              href === "/home/get-started" ? pathname === "/home/get-started" || pathname.startsWith("/home/") :
               href === "/projects" ? pathname === "/projects" || pathname.startsWith("/projects/") :
               href === "/spaces" ? pathname === "/spaces" || pathname.startsWith("/spaces/") :
               href === "/ai-suite" ? pathname === "/ai-suite" || pathname.startsWith("/ai-suite/") :
@@ -427,7 +428,7 @@ export function Sidebar() {
               href === "/audio" ? pathname === "/audio" || pathname.startsWith("/audio/") :
               href === "/3d" ? pathname === "/3d" || pathname.startsWith("/3d/") :
               pathname === href
-            )?.id ?? "folders");
+            )?.id ?? "home");
 
   const toggleMyProject = (name: string) => {
     setExpandedMyProjects((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -558,6 +559,19 @@ export function Sidebar() {
             >
               <MagnifyingGlass {...iconProps} />
             </button>
+          </Tooltip>
+          <Tooltip content="Home" side="right">
+            <Link
+              href="/home/get-started"
+              className={`flex items-center justify-center rounded-lg transition-colors ${iconBtn} ${activeNavId === "home" ? "" : "hover:bg-fg/10"}`}
+              style={{
+                color: "var(--surface-foreground-0)",
+                background: activeNavId === "home" ? "var(--selected)" : "transparent",
+              }}
+              aria-label="Home"
+            >
+              <House {...iconProps} size={iconBtnIconSize} />
+            </Link>
           </Tooltip>
           <Tooltip content="Stock" side="right">
             <Link
