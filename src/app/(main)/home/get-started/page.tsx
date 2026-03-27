@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import NextImage from "next/image";
 import localFont from "next/font/local";
 import { usePalette } from "@/contexts/PaletteContext";
+import { useTool } from "@/contexts/ToolContext";
 
 const klarheit = localFont({ src: "../../../fonts/ESKlarheitPlakat-Xbd.otf" });
 import Link from "next/link";
@@ -44,6 +45,7 @@ import {
   Lock,
   PushPin,
   Users,
+  X,
 } from "@phosphor-icons/react";
 import { AssistantButton } from "@/components/AssistantButton";
 import { AvatarWithProgress } from "@/components/AvatarWithProgress";
@@ -450,6 +452,8 @@ function RecentWorkTab() {
 
 export default function GetStartedPage() {
   const spotlight = useSpotlight();
+  const router = useRouter();
+  const { setShowToolsPanel } = useTool();
   const [bottomTab, setBottomTab] = useState("For you");
   const [selectedTool, setSelectedTool] = useState("Find Stock");
   const [selectedRatio, setSelectedRatio] = useState("1:1");
@@ -459,6 +463,7 @@ export default function GetStartedPage() {
   const modelSelectorRef = useRef<HTMLDivElement>(null);
   const modelBtnTriggerRef = useRef<HTMLButtonElement>(null);
   const [showAllTools, setShowAllTools] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const heroScroll = useHorizontalScroll();
   const mainScrollRef = useRef<HTMLDivElement>(null);
   const topSectionRef = useRef<HTMLDivElement>(null);
@@ -530,6 +535,20 @@ export default function GetStartedPage() {
     >
       <header className="flex h-[60px] shrink-0 items-center justify-between px-6">
         <Breadcrumb />
+        {!bannerDismissed && (
+          <div className="flex items-center gap-2 rounded-full border border-white/5 bg-white/5 py-1.5 pl-3 pr-2 text-sm">
+            <span className="rounded-md bg-gradient-to-r from-fuchsia-500 to-violet-500 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">New</span>
+            <span className="font-medium text-fg/90">Nano Banana 2 is here</span>
+            <span className="text-fg/50">3× faster with even better quality.</span>
+            <button
+              type="button"
+              onClick={() => setBannerDismissed(true)}
+              className="ml-1 flex size-5 cursor-pointer items-center justify-center rounded-full text-fg/40 transition-colors hover:bg-white/10 hover:text-fg"
+            >
+              <X weight="bold" size={10} />
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <FreepikButton />
           <AssistantButton />
@@ -579,17 +598,21 @@ export default function GetStartedPage() {
           {/* Tools row — single line of 6, pixel-perfect from Figma */}
           <div className="mx-auto flex w-full gap-4 pt-10" style={{ maxWidth: 1200 }}>
             {[
-              { label: "Create a Space", icon: "/icons/tool-spaces.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(192,129,222,0.1)", href: "/spaces" },
-              { label: "Generate Image", icon: "/icons/tool-image.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(131,115,255,0.1)", href: "/ai-suite" },
-              { label: "Generate Video", icon: "/icons/tool-video.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(16,201,141,0.1)", href: "/video" },
-              { label: "Generate Audio", icon: "/icons/tool-audio.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(121,209,219,0.1)", href: "/audio" },
-              { label: "Generate 3D", icon: "/icons/tool-3d.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(231,173,22,0.1)", href: "/3d" },
-              { label: "Find stock", icon: "/icons/tool-stock.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(255,255,255,0.05)", href: "/stock" },
-            ].map(({ label, icon, desc, bg, href }) => (
-              <Link
+              { label: "Create a Space", icon: "/icons/tool-spaces.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(192,129,222,0.1)", href: "/spaces", openPanel: false },
+              { label: "Generate Image", icon: "/icons/tool-image.svg", desc: "Generate stunning images from text prompts", bg: "rgba(131,115,255,0.1)", href: "/ai-suite", openPanel: true },
+              { label: "Generate Video", icon: "/icons/tool-video.svg", desc: "Generate cinematic video clips from text or images", bg: "rgba(16,201,141,0.1)", href: "/video", openPanel: true },
+              { label: "Generate Audio", icon: "/icons/tool-audio.svg", desc: "Generate natural-sounding voiceovers and music", bg: "rgba(121,209,219,0.1)", href: "/audio", openPanel: true },
+              { label: "Generate 3D", icon: "/icons/tool-3d.svg", desc: "Generate 3D models from text or image input", bg: "rgba(231,173,22,0.1)", href: "/3d", openPanel: true },
+              { label: "Find stock", icon: "/icons/tool-stock.svg", desc: "Search millions of stock photos, vectors and more", bg: "rgba(255,255,255,0.05)", href: "/stock", openPanel: false },
+            ].map(({ label, icon, desc, bg, href, openPanel }) => (
+              <button
                 key={label}
-                href={href}
-                className="flex min-w-0 flex-1 cursor-pointer flex-col rounded-2xl p-4 transition-colors hover:bg-white/5"
+                type="button"
+                onClick={() => {
+                  if (openPanel) setShowToolsPanel(true);
+                  router.push(href);
+                }}
+                className="flex min-w-0 flex-1 cursor-pointer flex-col rounded-2xl p-4 text-left transition-colors hover:bg-white/5"
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex size-12 shrink-0 items-center justify-center rounded-lg" style={{ background: bg }}>
@@ -600,7 +623,7 @@ export default function GetStartedPage() {
                     <span className="text-[12px]" style={{ color: "#737373" }}>{desc}</span>
                   </div>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
