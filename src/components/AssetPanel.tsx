@@ -286,20 +286,29 @@ export function AssetPanel() {
         style={{ background: sc.panel }}
       >
         <div className="flex h-8 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-[15px] font-medium text-fg/90">
-              {activeProject?.name}{activeFolder ? ` / ${activeFolder}` : ""}
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-medium leading-[1.6]" style={{ color: "#E3E3E3" }}>
+              {activeProject?.name}
             </span>
+            {activeFolder && (
+              <>
+                <span className="text-sm font-medium leading-[1.6]" style={{ color: "#737373" }}>/</span>
+                <span className="text-sm font-medium leading-[1.6]" style={{ color: "#E3E3E3" }}>
+                  {activeFolder}
+                </span>
+              </>
+            )}
             <Link
               href={
                 activeFolder
                   ? `/projects/${activeProject?.name?.toLowerCase().replace(/\s+/g, "-")}?folder=${encodeURIComponent(activeFolder)}`
                   : `/projects/${activeProject?.name?.toLowerCase().replace(/\s+/g, "-")}`
               }
-              className="flex size-6 items-center justify-center rounded-md text-fg/30 transition-colors hover:bg-white/10 hover:text-fg/60"
+              className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-white/10"
+              style={{ background: "rgba(255,255,255,0.1)" }}
               title="Go to project"
             >
-              <ArrowSquareOut weight="bold" size={14} />
+              <ArrowSquareOut weight="regular" size={18} />
             </Link>
           </div>
           {/* Filters */}

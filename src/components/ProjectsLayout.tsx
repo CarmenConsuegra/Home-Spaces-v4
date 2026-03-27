@@ -552,8 +552,8 @@ function ProjectsLayoutInner({ title, children, simpleHeader = false, projectsHe
                 <button
                   type="button"
                   onClick={() => { if (currentProject) selectProject(currentProject, currentFolder); createModal?.open(); }}
-                  className="flex h-8 items-center gap-2 rounded-lg px-4 text-[12px] font-medium text-fg transition-colors hover:opacity-90"
-                  style={{ background: sc.button }}
+                  className="flex h-8 items-center gap-2 rounded-lg px-4 text-[12px] font-medium transition-colors hover:opacity-90"
+                  style={{ background: "#f5f5f5", color: "#1a1a1a" }}
                 >
                   <Plus weight="bold" size={14} />
                   Start creating
