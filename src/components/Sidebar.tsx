@@ -541,8 +541,8 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => createModal?.open()}
-            className="mt-2 mb-4 flex h-9 w-10 shrink-0 items-center justify-center rounded-lg border transition-opacity hover:opacity-90"
-            style={{ background: ctaColor, borderColor: ctaColor, color: ctaTextColor }}
+            className="mt-2 mb-4 flex size-8 shrink-0 items-center justify-center rounded-lg transition-opacity hover:opacity-80"
+            style={{ background: "#e3e3e3", color: "#1a1a1a" }}
             aria-label="New"
           >
             <Plus {...iconProps} />
