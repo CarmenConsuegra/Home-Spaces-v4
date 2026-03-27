@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import NextImage from "next/image";
+import Link from "next/link";
 import { usePalette } from "@/contexts/PaletteContext";
 import { createPortal } from "react-dom";
 import { useRouter, usePathname } from "next/navigation";
@@ -32,6 +33,7 @@ import {
   TreeStructure,
   PencilSimple,
   SidebarSimple,
+  ArrowSquareOut,
 } from "@phosphor-icons/react";
 
 const sectionRoutes: Record<string, string> = {
@@ -283,6 +285,24 @@ export function AssetPanel() {
         className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-2xl px-6 py-4"
         style={{ background: sc.panel }}
       >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[15px] font-medium text-fg/90">
+              {activeProject?.name}{activeFolder ? ` / ${activeFolder}` : ""}
+            </span>
+            <Link
+              href={
+                activeFolder
+                  ? `/projects/${activeProject?.name?.toLowerCase().replace(/\s+/g, "-")}?folder=${encodeURIComponent(activeFolder)}`
+                  : `/projects/${activeProject?.name?.toLowerCase().replace(/\s+/g, "-")}`
+              }
+              className="flex size-6 items-center justify-center rounded-md text-fg/30 transition-colors hover:bg-white/10 hover:text-fg/60"
+              title="Go to project"
+            >
+              <ArrowSquareOut weight="bold" size={14} />
+            </Link>
+          </div>
+        </div>
         <div className="flex h-8 items-center justify-end">
           {/* Filters */}
           <div className="flex items-center gap-1.5">

@@ -351,8 +351,8 @@ export function ProjectFolderBreadcrumb() {
   ref={btnRef}
   type="button"
   onClick={togglePicker}
-  className="flex cursor-pointer items-center gap-2 rounded-lg border bg-white/10 px-3 py-1.5 transition-colors hover:bg-white/15"
-  style={{ borderColor: "rgba(255,255,255,0.1)" }}
+  className="flex cursor-pointer items-center gap-2 rounded-lg border bg-white/[0.08] px-3 py-1.5 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_1px_3px_rgba(0,0,0,0.3)] transition-colors hover:bg-white/15"
+  style={{ borderColor: "rgba(255,255,255,0.22)" }}
   >
   {activeProject.cover ? (
     <div className="size-5 shrink-0 overflow-hidden rounded">
@@ -373,20 +373,6 @@ export function ProjectFolderBreadcrumb() {
         )}
         <CaretDown weight="bold" size={10} className="ml-0.5 text-fg/40" />
       </button>
-
-      {/* Direct link to project/folder */}
-      <Link
-        href={
-          activeFolder
-            ? `/projects/${activeProject.name.toLowerCase().replace(/\s+/g, "-")}?folder=${encodeURIComponent(activeFolder)}`
-            : `/projects/${activeProject.name.toLowerCase().replace(/\s+/g, "-")}`
-        }
-        className="flex size-8 shrink-0 items-center justify-center rounded-lg border transition-colors hover:bg-white/10"
-        style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--surface-foreground-0)" }}
-        title="Go to project"
-      >
-        <ArrowSquareOut weight="bold" size={14} />
-      </Link>
 
       {/* Combined picker portal */}
       {pickerOpen && createPortal(
