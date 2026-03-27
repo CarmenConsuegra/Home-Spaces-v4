@@ -415,20 +415,21 @@ export function Sidebar() {
 
   const activeNavId = !mounted
     ? "home"
-    : (pathname === "/academy" || pathname.startsWith("/academy/"))
-      ? "academy"
-      : (pathname === "/stock" || pathname.startsWith("/stock/"))
-        ? "search"
-        : (navItems.find(({ href }) =>
-              href === "/home/get-started" ? pathname === "/home/get-started" || pathname.startsWith("/home/") :
-              href === "/projects" ? pathname === "/projects" || pathname.startsWith("/projects/") :
-              href === "/spaces" ? pathname === "/spaces" || pathname.startsWith("/spaces/") :
-              href === "/ai-suite" ? pathname === "/ai-suite" || pathname.startsWith("/ai-suite/") :
-              href === "/video" ? pathname === "/video" || pathname.startsWith("/video/") :
-              href === "/audio" ? pathname === "/audio" || pathname.startsWith("/audio/") :
-              href === "/3d" ? pathname === "/3d" || pathname.startsWith("/3d/") :
-              pathname === href
-            )?.id ?? "home");
+    : (pathname === "/home/get-started" || pathname.startsWith("/home/"))
+      ? "home"
+      : (pathname === "/academy" || pathname.startsWith("/academy/"))
+        ? "academy"
+        : (pathname === "/stock" || pathname.startsWith("/stock/"))
+          ? "search"
+          : (navItems.find(({ href }) =>
+                href === "/projects" ? pathname === "/projects" || pathname.startsWith("/projects/") :
+                href === "/spaces" ? pathname === "/spaces" || pathname.startsWith("/spaces/") :
+                href === "/ai-suite" ? pathname === "/ai-suite" || pathname.startsWith("/ai-suite/") :
+                href === "/video" ? pathname === "/video" || pathname.startsWith("/video/") :
+                href === "/audio" ? pathname === "/audio" || pathname.startsWith("/audio/") :
+                href === "/3d" ? pathname === "/3d" || pathname.startsWith("/3d/") :
+                pathname === href
+              )?.id ?? "home");
 
   const toggleMyProject = (name: string) => {
     setExpandedMyProjects((prev) => ({ ...prev, [name]: !prev[name] }));
