@@ -285,7 +285,7 @@ export function AssetPanel() {
         className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-2xl px-6 py-4"
         style={{ background: sc.panel }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex h-8 items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-medium text-fg/90">
               {activeProject?.name}{activeFolder ? ` / ${activeFolder}` : ""}
@@ -302,8 +302,6 @@ export function AssetPanel() {
               <ArrowSquareOut weight="bold" size={14} />
             </Link>
           </div>
-        </div>
-        <div className="flex h-8 items-center justify-end">
           {/* Filters */}
           <div className="flex items-center gap-1.5">
             {/* Content type icon group */}
