@@ -347,7 +347,6 @@ export function ProjectFolderBreadcrumb() {
 
   return (
     <>
-  <span className="mr-2 text-[13px] text-fg/40">Generate in:</span>
   <button
   ref={btnRef}
   type="button"
