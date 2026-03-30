@@ -460,7 +460,7 @@ const _dragHandleActive = { current: false };
 
 function WidgetShell({ title, icon: Icon, onRemove, children, action }: {
   title: string;
-  icon: React.ComponentType<{ weight: string; size: number }>;
+  icon: React.ComponentType<{ weight: string; size: number; style?: React.CSSProperties }>;
   onRemove: () => void;
   children: React.ReactNode;
   action?: React.ReactNode;
