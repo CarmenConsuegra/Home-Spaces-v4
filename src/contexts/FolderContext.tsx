@@ -37,11 +37,16 @@ const initialProjects: Project[] = [
     ],
   },
   {
-    name: "Product Shots",
+    name: "Team project",
     color: "#8b5cf6",
     cover: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop",
-    isPrivate: true,
+    isPrivate: false,
+    isTeam: true,
     owner: "Martin LeBlanc",
+    teamMembers: [
+      { initials: "M", color: "#8b5cf6" },
+      { initials: "A", color: "#22c55e" },
+    ],
     folders: [
       { name: "Hero images", assetCount: 3 },
       { name: "Lifestyle", assetCount: 2 },

@@ -3,7 +3,7 @@
 
 export const projectPathMap: Record<string, string> = {
   "Personal": "personal",
-  "Product Shots": "product-shots",
+  "Team project": "team-project",
   "Nike Campaign": "nike-campaign",
   "Lifestyle": "lifestyle",
   "Road Trip": "road-trip",
@@ -21,7 +21,7 @@ export const projectFolderAssets: Record<string, Record<string, number[]>> = {
     "Social ads": [8], // Child of Scenes
     "Documents": [9, 10],
   },
-  "Product Shots": {
+  "Team project": {
     "": [1, 2], // Root level
     "Hero images": [3, 4, 5],
     "Lifestyle": [6, 7],

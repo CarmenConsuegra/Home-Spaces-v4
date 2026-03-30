@@ -11,9 +11,9 @@ const uploadedAssets = [
   // Personal - indices 2, 7
   { src: "/projects/personal/asset-03.jpg", project: "Personal", owner: "Alvaro Castañeda" },
   { src: "/projects/personal/asset-08.jpg", project: "Personal", owner: "Alvaro Castañeda" },
-  // Product Shots - indices 0, 4
-  { src: "/projects/product-shots/asset-01.jpg", project: "Product Shots", owner: "Martin LeBlanc" },
-  { src: "/projects/product-shots/asset-05.jpg", project: "Product Shots", owner: "Martin LeBlanc" },
+  // Team project - indices 0, 4
+  { src: "/projects/product-shots/asset-01.jpg", project: "Team project", owner: "Martin LeBlanc" },
+  { src: "/projects/product-shots/asset-05.jpg", project: "Team project", owner: "Martin LeBlanc" },
   // Nike Campaign - indices 3, 8
   { src: "/projects/nike-campaign/asset-04.jpg", project: "Nike Campaign", owner: "Adrián Fernández" },
   { src: "/projects/nike-campaign/asset-09.jpg", project: "Nike Campaign", owner: "Adrián Fernández" },

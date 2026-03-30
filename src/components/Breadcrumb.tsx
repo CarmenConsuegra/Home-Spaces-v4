@@ -123,7 +123,7 @@ function BreadcrumbInner() {
       const projectSlug = projectMatch[1];
       const projectNameMap: Record<string, string> = {
         "personal": "Personal",
-        "product-shots": "Product Shots",
+        "team-project": "Team project",
         "nike-campaign": "Nike Campaign",
         "lifestyle": "Lifestyle",
         "road-trip": "Road Trip",

@@ -61,6 +61,8 @@ import { allSpaces } from "@/data/spaces";
 import { getProjectAssets } from "@/data/projectAssets";
 import { useRouter } from "next/navigation";
 import { useNewProjectModal } from "@/contexts/NewProjectModalContext";
+import { useCreateModal } from "@/contexts/CreateModalContext";
+import { BusinessUpgradeModal } from "@/components/BusinessUpgradeModal";
 
 
 
@@ -352,14 +354,21 @@ function parseDaysAgo(s: string): number {
 }
 
 // List item row used inside the 3-column cards
-function ListItem({ thumb, name, date, href }: { thumb?: string; name: string; date: string; href: string }) {
+function ListItem({ thumb, name, date, href, isTeam, onClick }: { thumb?: string; name: string; date: string; href: string; isTeam?: boolean; onClick?: (e: React.MouseEvent) => void }) {
   return (
-    <Link href={href} className="flex gap-4 items-start w-full transition-colors rounded-xl hover:bg-white/5 -mx-2 px-2 py-1">
+    <Link
+      href={href}
+      className="flex gap-4 items-start w-full transition-colors rounded-xl hover:bg-white/5 -mx-2 px-2 py-1"
+      onClick={onClick}
+    >
       <div className="size-12 shrink-0 overflow-hidden rounded-lg" style={{ background: "#424242" }}>
         {thumb && <NextImage src={thumb} alt={name} width={48} height={48} unoptimized className="size-full object-cover" />}
       </div>
       <div className="flex min-w-0 flex-1 flex-col leading-[1.6]">
-        <span className="truncate text-[14px]" style={{ color: "#f5f5f5" }}>{name}</span>
+        <div className="flex items-center gap-2">
+          <span className="truncate text-[14px]" style={{ color: "#f5f5f5" }}>{name}</span>
+          {isTeam && <Users weight="fill" size={14} className="shrink-0 text-fg/40" />}
+        </div>
         <span className="text-[12px] opacity-50" style={{ color: "#737373" }}>{date}</span>
       </div>
     </Link>
@@ -371,9 +380,11 @@ function RecentWorkTab() {
   const router = useRouter();
   const sortedSpaces = [...allSpaces].sort((a, b) => parseDaysAgo(a.editedAt) - parseDaysAgo(b.editedAt));
   const recentAssets = getProjectAssets("").slice(0, 3);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   return (
     <div className="mx-auto flex w-full gap-6" style={{ maxWidth: 1200 }}>
+      <BusinessUpgradeModal isOpen={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
       {/* Projects */}
       <section
         className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
@@ -392,6 +403,8 @@ function RecentWorkTab() {
             thumb={p.cover}
             name={p.name}
             date="Today"
+            isTeam={p.isTeam}
+            onClick={p.isTeam ? (e) => { e.preventDefault(); setUpgradeModalOpen(true); } : undefined}
           />
         ))}
         <Link href="/projects/all-projects" className="text-[12px] font-medium transition-colors hover:opacity-70" style={{ color: "#e3e3e3" }}>
@@ -454,6 +467,7 @@ export default function GetStartedPage() {
   const spotlight = useSpotlight();
   const router = useRouter();
   const { setShowToolsPanel } = useTool();
+  const createModal = useCreateModal();
   const [bottomTab, setBottomTab] = useState("For you");
   const [selectedTool, setSelectedTool] = useState("Find Stock");
   const [selectedRatio, setSelectedRatio] = useState("1:1");
@@ -595,36 +609,47 @@ export default function GetStartedPage() {
             </div>
           </div>
 
-          {/* Tools row — single line of 6, pixel-perfect from Figma */}
-          <div className="mx-auto flex w-full gap-4 pt-10" style={{ maxWidth: 1200 }}>
-            {[
-              { label: "Create a Space", icon: "/icons/tool-spaces.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(192,129,222,0.1)", href: "/spaces", openPanel: false },
-              { label: "Generate Image", icon: "/icons/tool-image.svg", desc: "Generate stunning images from text prompts", bg: "rgba(131,115,255,0.1)", href: "/ai-suite", openPanel: true },
-              { label: "Generate Video", icon: "/icons/tool-video.svg", desc: "Generate cinematic video clips from text or images", bg: "rgba(16,201,141,0.1)", href: "/video", openPanel: true },
-              { label: "Generate Audio", icon: "/icons/tool-audio.svg", desc: "Generate natural-sounding voiceovers and music", bg: "rgba(121,209,219,0.1)", href: "/audio", openPanel: true },
-              { label: "Generate 3D", icon: "/icons/tool-3d.svg", desc: "Generate 3D models from text or image input", bg: "rgba(231,173,22,0.1)", href: "/3d", openPanel: true },
-              { label: "Find stock", icon: "/icons/tool-stock.svg", desc: "Search millions of stock photos, vectors and more", bg: "rgba(255,255,255,0.05)", href: "/stock", openPanel: false },
-            ].map(({ label, icon, desc, bg, href, openPanel }) => (
-              <button
-                key={label}
-                type="button"
-                onClick={() => {
-                  if (openPanel) setShowToolsPanel(true);
-                  router.push(href);
-                }}
-                className="flex min-w-0 flex-1 cursor-pointer flex-col rounded-2xl p-4 text-left transition-colors hover:bg-white/5"
-              >
-                <div className="flex flex-col gap-3">
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-lg" style={{ background: bg }}>
-                    <img src={icon} alt="" className="size-5" />
+          {/* Tools row */}
+          <div className="mx-auto flex w-full flex-col items-center gap-4 pt-10" style={{ maxWidth: 1200 }}>
+            <div className="flex w-full gap-4">
+              {[
+                { label: "Spaces", icon: "/icons/tool-spaces.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(192,129,222,0.1)", href: "/spaces", openPanel: false },
+                { label: "Image", icon: "/icons/tool-image.svg", desc: "Generate stunning images from text prompts", bg: "rgba(79,105,242,0.1)", href: "/ai-suite", openPanel: true },
+                { label: "Video", icon: "/icons/tool-video.svg", desc: "Generate cinematic video clips from text or images", bg: "rgba(16,201,141,0.1)", href: "/video", openPanel: true },
+                { label: "Audio", icon: "/icons/tool-audio.svg", desc: "Generate natural-sounding voiceovers and music", bg: "rgba(121,209,219,0.1)", href: "/audio", openPanel: true },
+                { label: "3D", icon: "/icons/tool-3d.svg", desc: "Generate 3D models from text or image input", bg: "rgba(231,173,22,0.1)", href: "/3d", openPanel: true },
+                { label: "Stock", icon: "/icons/tool-stock.svg", desc: "Search millions of stock photos, vectors and more", bg: "rgba(255,255,255,0.05)", href: "/stock", openPanel: false },
+              ].map(({ label, icon, desc, bg, href, openPanel }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => {
+                    if (openPanel) setShowToolsPanel(true);
+                    router.push(href);
+                  }}
+                  className="flex min-w-0 flex-1 cursor-pointer flex-col rounded-2xl p-4 text-left transition-colors hover:bg-white/5"
+                >
+                  <div className="flex flex-col gap-3">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-lg" style={{ background: bg }}>
+                      <img src={icon} alt="" className="size-5" />
+                    </div>
+                    <div className="flex flex-col leading-[1.6]">
+                      <span className="text-base font-medium" style={{ color: "#f5f5f5" }}>{label}</span>
+                      <span className="text-xs" style={{ color: "#737373" }}>{desc}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col leading-[1.6]">
-                    <span className="text-[16px] font-medium" style={{ color: "#f5f5f5" }}>{label}</span>
-                    <span className="text-[12px]" style={{ color: "#737373" }}>{desc}</span>
-                  </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => createModal?.open()}
+              className="flex h-8 cursor-pointer items-center gap-2 rounded-lg px-4 text-xs font-medium transition-colors hover:bg-white/5"
+              style={{ color: "#f7f7f7" }}
+            >
+              Explore all
+              <CaretRight weight="bold" size={14} />
+            </button>
           </div>
         </div>
 

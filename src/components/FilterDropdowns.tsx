@@ -133,7 +133,7 @@ export function ProjectFilter({ value, onChange }: ProjectFilterProps) {
           <div className="max-h-64 overflow-y-auto p-1">
             {filteredProjects.map((project) => {
               const isShared = !project.isPrivate;
-              const isPinned = project.name === "Personal" || project.name === "Product Shots";
+              const isPinned = project.name === "Personal" || project.name === "Team project";
               
               return (
                 <button

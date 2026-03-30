@@ -16,8 +16,8 @@ export const allSpaces: Space[] = [
   // Personal project spaces
   { id: "personal-space1", projectId: "personal", projectName: "Personal", owner: "Alvaro Castañeda", name: "Portrait Series", editedAt: "12 days ago", isFavorite: true, thumbnails: ["/projects/personal/asset-01.jpg", "/projects/personal/asset-02.jpg", "/projects/personal/asset-03.jpg"] },
   { id: "personal-space2", projectId: "personal", projectName: "Personal", owner: "Alvaro Castañeda", name: "Artistic Shots", editedAt: "12 days ago", thumbnails: ["/projects/personal/asset-04.jpg"] },
-  // Product Shots project spaces
-  { id: "product-space1", projectId: "product-shots", projectName: "Product Shots", owner: "Martin LeBlanc", name: "Product Gallery", editedAt: "5 days ago", thumbnails: ["/projects/product-shots/asset-01.jpg", "/projects/product-shots/asset-02.jpg", "/projects/product-shots/asset-03.jpg"] },
+  // Team project spaces
+  { id: "product-space1", projectId: "team-project", projectName: "Team project", owner: "Martin LeBlanc", name: "Product Gallery", editedAt: "5 days ago", thumbnails: ["/projects/product-shots/asset-01.jpg", "/projects/product-shots/asset-02.jpg", "/projects/product-shots/asset-03.jpg"] },
   // Nike Campaign project spaces
   { id: "nike-space1", projectId: "nike-campaign", projectName: "Nike Campaign", owner: "Adrián Fernández", name: "Sneaker Hero", editedAt: "12 days ago", thumbnails: ["/projects/nike-campaign/asset-01.jpg", "/projects/nike-campaign/asset-02.jpg", "/projects/nike-campaign/asset-03.jpg"] },
   { id: "nike-space2", projectId: "nike-campaign", projectName: "Nike Campaign", owner: "Martin LeBlanc", name: "Action Shots", editedAt: "12 days ago", thumbnails: ["/projects/nike-campaign/asset-04.jpg"] },

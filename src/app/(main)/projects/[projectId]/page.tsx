@@ -157,7 +157,7 @@ function FolderCard({ name, assets, thumbnails, projectName, onDrop: onDropProp 
 // Map projectId URL slug to project name
 const projectIdToName: Record<string, string> = {
   "personal": "Personal",
-  "product-shots": "Product Shots",
+  "team-project": "Team project",
   "nike-campaign": "Nike Campaign",
   "lifestyle": "Lifestyle",
   "road-trip": "Road Trip",
@@ -169,7 +169,7 @@ const projectSpaces: Record<string, { id: string; name: string; editedAt: string
     { id: "space1", name: "Portrait Series", editedAt: "12 days ago", thumbnails: ["/projects/personal/asset-01.jpg", "/projects/personal/asset-02.jpg", "/projects/personal/asset-03.jpg"] },
     { id: "space2", name: "Artistic Shots", editedAt: "12 days ago", thumbnails: ["/projects/personal/asset-04.jpg"] },
   ],
-  "Product Shots": [
+  "Team project": [
     { id: "space1", name: "Product Gallery", editedAt: "5 days ago", thumbnails: ["/projects/product-shots/asset-01.jpg", "/projects/product-shots/asset-02.jpg", "/projects/product-shots/asset-03.jpg"] },
   ],
   "Nike Campaign": [

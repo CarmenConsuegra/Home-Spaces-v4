@@ -14,7 +14,7 @@ import { getProjectAssets, isAssetFavorite } from "@/data/projectAssets";
 // Owner to project mapping
 const projectOwnerMap: Record<string, string> = {
   "Personal": "Alvaro Castañeda",
-  "Product Shots": "Martin LeBlanc",
+  "Team project": "Martin LeBlanc",
   "Nike Campaign": "Adrián Fernández",
   "Lifestyle": "Leandro Bos",
   "Road Trip": "Alvaro Castañeda",

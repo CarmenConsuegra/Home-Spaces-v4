@@ -12,9 +12,9 @@ const favoriteAssets = [
   // Personal - indices 1, 6
   { src: "/projects/personal/asset-02.jpg", project: "Personal", owner: "Alvaro Castañeda" },
   { src: "/projects/personal/asset-07.jpg", project: "Personal", owner: "Alvaro Castañeda" },
-  // Product Shots - indices 2, 7
-  { src: "/projects/product-shots/asset-03.jpg", project: "Product Shots", owner: "Martin LeBlanc" },
-  { src: "/projects/product-shots/asset-08.jpg", project: "Product Shots", owner: "Martin LeBlanc" },
+  // Team project - indices 2, 7
+  { src: "/projects/product-shots/asset-03.jpg", project: "Team project", owner: "Martin LeBlanc" },
+  { src: "/projects/product-shots/asset-08.jpg", project: "Team project", owner: "Martin LeBlanc" },
   // Nike Campaign - indices 0, 5
   { src: "/projects/nike-campaign/asset-01.jpg", project: "Nike Campaign", owner: "Adrián Fernández" },
   { src: "/projects/nike-campaign/asset-06.jpg", project: "Nike Campaign", owner: "Adrián Fernández" },

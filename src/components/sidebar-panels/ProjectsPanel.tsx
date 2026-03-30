@@ -29,6 +29,7 @@ import {
 import { Tooltip } from "@/components/Tooltip";
 import { useFolder, type Folder, type Project } from "@/contexts/FolderContext";
 import { useNewProjectModal } from "@/contexts/NewProjectModalContext";
+import { BusinessUpgradeModal } from "@/components/BusinessUpgradeModal";
 
 // ── Project context menu ──────────────────────────────────────────────────────
 
@@ -402,6 +403,7 @@ function ProjectRow({
   handleCancelCreate,
   handleDropAsset,
   handleDropSpace,
+  onUpgradeClick,
 }: {
   project: Project;
   projectSlug: string;
@@ -419,6 +421,7 @@ function ProjectRow({
   handleCancelCreate: () => void;
   handleDropAsset: (assetId: string, toProject: string, toFolder: string) => void;
   handleDropSpace: (spaceId: string, toProject: string) => void;
+  onUpgradeClick?: () => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -486,6 +489,7 @@ function ProjectRow({
           draggable={false}
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg py-1 pr-1 text-left"
           style={{ color: "inherit" }}
+          onClick={project.isTeam ? (e) => { e.preventDefault(); onUpgradeClick?.(); } : undefined}
         >
           {project.cover ? (
             <div className="size-3.5 shrink-0 overflow-hidden rounded" style={{ borderRadius: "4px" }}>
@@ -559,6 +563,7 @@ export function ProjectsPanel() {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [creatingFolderAt, setCreatingFolderAt] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ project: Project; rect: { top: number; left: number } } | null>(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   const openContextMenu = useCallback((project: Project, btnEl: HTMLButtonElement) => {
     const r = btnEl.getBoundingClientRect();
@@ -628,6 +633,7 @@ export function ProjectsPanel() {
           handleCancelCreate={handleCancelCreate}
           handleDropAsset={handleDropAsset}
           handleDropSpace={handleDropSpace}
+          onUpgradeClick={() => setUpgradeModalOpen(true)}
         />
       );
     });
@@ -701,6 +707,8 @@ export function ProjectsPanel() {
           onNewFolder={() => handleStartProjectFolder(contextMenu.project.name)}
         />
       )}
+
+      <BusinessUpgradeModal isOpen={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
     </>
   );
 }
