@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, useState, Suspense } from "react";
+import { use, useEffect, useMemo, useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -303,7 +303,7 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
   const searchParams = useSearchParams();
   const { surfaceColors: sc } = usePalette();
   const createModal = useCreateModal();
-  const { projects, movedAssets, moveAsset } = useFolder();
+  const { projects, movedAssets, moveAsset, selectProject } = useFolder();
   const [isDragOverRoot, setIsDragOverRoot] = useState(false);
   const [foldersExpanded, setFoldersExpanded] = useState(true);
   const [spacesExpanded, setSpacesExpanded] = useState(true);
@@ -311,6 +311,16 @@ function ProjectDetailContent({ params }: { params: Promise<{ projectId: string 
   
   // Get folder from URL query param
   const currentFolderName = searchParams.get("folder") || "";
+
+  // Sync current project/folder navigation to FolderContext so tools pick it up
+  useEffect(() => {
+    const name = projectIdToName[projectId]
+      || projects.find(p => p.name.toLowerCase().replace(/\s+/g, "-") === projectId)?.name;
+    const proj = projects.find(p => p.name === name);
+    if (proj) {
+      selectProject(proj, currentFolderName);
+    }
+  }, [projectId, currentFolderName, projects, selectProject]);
   
   // Get project name from URL slug — try static map first, then match by slug
   const projectName = projectIdToName[projectId]
