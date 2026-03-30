@@ -354,23 +354,58 @@ function parseDaysAgo(s: string): number {
 }
 
 // List item row used inside the 3-column cards
-function ListItem({ thumb, name, date, href, isTeam, onClick }: { thumb?: string; name: string; date: string; href: string; isTeam?: boolean; onClick?: (e: React.MouseEvent) => void }) {
+function ListItem({ thumb, name, date, href, isTeam, onClick, teamMembers, typeIcon }: {
+  thumb?: string; name: string; date: string; href: string; isTeam?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+  teamMembers?: { initials: string; color: string }[];
+  typeIcon?: "image" | "video";
+}) {
   return (
     <Link
       href={href}
-      className="flex gap-4 items-start w-full transition-colors rounded-xl hover:bg-white/5 -mx-2 px-2 py-1"
+      className="flex h-12 items-center gap-4 w-full transition-colors rounded-xl hover:bg-white/5 -mx-2 px-2"
       onClick={onClick}
     >
       <div className="size-12 shrink-0 overflow-hidden rounded-lg" style={{ background: "#424242" }}>
         {thumb && <NextImage src={thumb} alt={name} width={48} height={48} unoptimized className="size-full object-cover" />}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col leading-[1.6]">
-        <div className="flex items-center gap-2">
-          <span className="truncate text-[14px]" style={{ color: "#f5f5f5" }}>{name}</span>
-          {isTeam && <Users weight="fill" size={14} className="shrink-0 text-fg/40" />}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-sm leading-[1.6]" style={{ color: "#f5f5f5" }}>{name}</span>
+        <div className="flex items-center gap-1 text-xs leading-[1.6] opacity-50" style={{ color: "#c5c5c5" }}>
+          {isTeam && (
+            <>
+              <Users weight="fill" size={12} className="shrink-0" />
+              <span>•</span>
+            </>
+          )}
+          {typeIcon === "image" && (
+            <>
+              <Image weight="regular" size={12} className="shrink-0" />
+              <span>•</span>
+            </>
+          )}
+          {typeIcon === "video" && (
+            <>
+              <VideoCamera weight="regular" size={12} className="shrink-0" />
+              <span>•</span>
+            </>
+          )}
+          <span>{date}</span>
         </div>
-        <span className="text-[12px] opacity-50" style={{ color: "#737373" }}>{date}</span>
       </div>
+      {teamMembers && teamMembers.length > 0 && (
+        <div className="flex shrink-0 items-center pr-3">
+          {teamMembers.slice(0, 4).map((m, i) => (
+            <div
+              key={i}
+              className="flex size-6 items-center justify-center rounded-full border-2 text-[10px] font-semibold text-white"
+              style={{ background: m.color, borderColor: "#1a1a1a", marginLeft: i > 0 ? -12 : 0, zIndex: 4 - i }}
+            >
+              {m.initials}
+            </div>
+          ))}
+        </div>
+      )}
     </Link>
   );
 }
@@ -382,6 +417,13 @@ function RecentWorkTab() {
   const recentAssets = getProjectAssets("").slice(0, 3);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
+  const defaultTeamMembers = [
+    { initials: "J", color: "#22c55e" },
+    { initials: "M", color: "#3b82f6" },
+    { initials: "A", color: "#f59e0b" },
+    { initials: "S", color: "#ec4899" },
+  ];
+
   return (
     <div className="mx-auto flex w-full gap-6" style={{ maxWidth: 1200 }}>
       <BusinessUpgradeModal isOpen={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
@@ -390,9 +432,15 @@ function RecentWorkTab() {
         className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
         style={{ background: "#1a1a1a" }}
       >
-        <div className="flex items-center justify-between">
-          <span className="text-[12px] font-medium" style={{ color: "#f5f5f5" }}>Projects</span>
-          <button type="button" onClick={() => newProjectModal?.open()} className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-white/5" style={{ color: "#f5f5f5" }}>
+        <div className="flex items-center gap-2.5">
+          <span className="flex-1 text-xs font-medium leading-[1.6]" style={{ color: "#f5f5f5" }}>Projects</span>
+          <button
+            type="button"
+            onClick={() => newProjectModal?.open()}
+            className="flex size-6 items-center justify-center rounded-md"
+            style={{ background: "rgba(115,115,115,0.05)", color: "#f5f5f5" }}
+            aria-label="New project"
+          >
             <Plus weight="regular" size={12} />
           </button>
         </div>
@@ -402,12 +450,13 @@ function RecentWorkTab() {
             href={`/projects/${p.name.toLowerCase().replace(/\s+/g, "-")}`}
             thumb={p.cover}
             name={p.name}
-            date="Today"
+            date={p.isTeam ? "Yesterday" : "Today"}
             isTeam={p.isTeam}
+            teamMembers={p.teamMembers}
             onClick={p.isTeam ? (e) => { e.preventDefault(); setUpgradeModalOpen(true); } : undefined}
           />
         ))}
-        <Link href="/projects/all-projects" className="text-[12px] font-medium transition-colors hover:opacity-70" style={{ color: "#e3e3e3" }}>
+        <Link href="/projects/all-projects" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>
           View all
         </Link>
       </section>
@@ -417,9 +466,15 @@ function RecentWorkTab() {
         className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
         style={{ background: "#1a1a1a" }}
       >
-        <div className="flex items-center justify-between">
-          <span className="text-[12px] font-medium" style={{ color: "#f5f5f5" }}>Spaces</span>
-          <button type="button" onClick={() => router.push("/spaces/new")} className="flex size-6 items-center justify-center rounded-md transition-colors hover:bg-white/5" style={{ color: "#f5f5f5" }}>
+        <div className="flex items-center gap-2.5">
+          <span className="flex-1 text-xs font-medium leading-[1.6]" style={{ color: "#f5f5f5" }}>Spaces</span>
+          <button
+            type="button"
+            onClick={() => router.push("/spaces/new")}
+            className="flex size-6 items-center justify-center rounded-md"
+            style={{ background: "rgba(115,115,115,0.05)", color: "#f5f5f5" }}
+            aria-label="New space"
+          >
             <Plus weight="regular" size={12} />
           </button>
         </div>
@@ -430,9 +485,11 @@ function RecentWorkTab() {
             thumb={space.thumbnails[0]}
             name={space.name}
             date={space.editedAt}
+            isTeam
+            teamMembers={defaultTeamMembers}
           />
         ))}
-        <Link href="/spaces" className="text-[12px] font-medium transition-colors hover:opacity-70" style={{ color: "#e3e3e3" }}>
+        <Link href="/spaces" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>
           View all
         </Link>
       </section>
@@ -442,8 +499,8 @@ function RecentWorkTab() {
         className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
         style={{ background: "#1a1a1a" }}
       >
-        <div className="flex items-center justify-between">
-          <span className="text-[12px] font-medium" style={{ color: "#f5f5f5" }}>Assets</span>
+        <div className="flex items-center gap-2.5">
+          <span className="flex-1 text-xs font-medium leading-[1.6]" style={{ color: "#f5f5f5" }}>Assets</span>
           <span className="size-6" />
         </div>
         {recentAssets.map((asset, i) => (
@@ -452,10 +509,11 @@ function RecentWorkTab() {
             href="/projects/all-assets"
             thumb={asset.src}
             name={asset.projectName || "Untitled asset"}
-            date="Today"
+            date="Yesterday"
+            typeIcon="image"
           />
         ))}
-        <Link href="/projects/all-assets" className="text-[12px] font-medium transition-colors hover:opacity-70" style={{ color: "#e3e3e3" }}>
+        <Link href="/projects/all-assets" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>
           View all
         </Link>
       </section>
