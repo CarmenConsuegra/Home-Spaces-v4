@@ -46,6 +46,9 @@ import {
   PushPin,
   Users,
   X,
+  ChatCircle,
+  ChartBar,
+  DotsSixVertical,
 } from "@phosphor-icons/react";
 import { AssistantButton } from "@/components/AssistantButton";
 import { AvatarWithProgress } from "@/components/AvatarWithProgress";
@@ -410,40 +413,114 @@ function ListItem({ thumb, name, date, href, isTeam, onClick, teamMembers, typeI
   );
 }
 
-function RecentWorkTab() {
-  const newProjectModal = useNewProjectModal();
-  const router = useRouter();
-  const sortedSpaces = [...allSpaces].sort((a, b) => parseDaysAgo(a.editedAt) - parseDaysAgo(b.editedAt));
-  const recentAssets = getProjectAssets("").slice(0, 3);
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+type WidgetId = "projects" | "spaces" | "assets" | "favorites" | "comments" | "credits" | "people";
 
-  const defaultTeamMembers = [
-    { initials: "J", color: "#22c55e" },
-    { initials: "M", color: "#3b82f6" },
-    { initials: "A", color: "#f59e0b" },
-    { initials: "S", color: "#ec4899" },
-  ];
+const WIDGET_META: Record<WidgetId, { label: string; icon: typeof Folders }> = {
+  projects: { label: "Projects", icon: FolderSimple },
+  spaces: { label: "Spaces", icon: Layout },
+  assets: { label: "Assets", icon: Image },
+  favorites: { label: "Favorites", icon: Heart },
+  comments: { label: "Comments", icon: ChatCircle },
+  credits: { label: "Credit Usage", icon: ChartBar },
+  people: { label: "People", icon: UsersThree },
+};
 
+const DEFAULT_WIDGETS: WidgetId[] = ["projects", "spaces", "assets"];
+const EXTRA_WIDGETS: WidgetId[] = ["favorites", "comments", "credits", "people"];
+
+const favoriteAssets = [
+  { src: "/projects/personal/asset-02.jpg", name: "Portrait Series" },
+  { src: "/projects/nike-campaign/asset-01.jpg", name: "Nike Campaign" },
+  { src: "/projects/lifestyle/asset-04.jpg", name: "Lifestyle" },
+];
+
+const mockNotifications = [
+  { user: "Lorena Chinchilla", avatar: "LC", action: "Commented on your cre...", target: "una rana leyendo", message: "I'd change the eye", time: "an hour ago", unread: false },
+  { user: "Lorena Chinchilla", avatar: "LC", action: "Mentioned you in a...", target: "Change the product in...", message: "I've created this for the new campaign, can you review this, please @Car Men2", time: "an hour ago", unread: true },
+  { user: "Lorena Chinchilla", avatar: "LC", action: "Commented on your cre...", target: "una rana leyendo", message: "Hi Carmen,", time: "an hour ago", unread: false },
+];
+
+const mockMembers = [
+  { name: "Brooklyn Simmons", email: "curtis.weaver@example.com", role: "Owner", avatar: "BS", color: "#E8627C" },
+  { name: "Peter Jackson", email: "littlefinger@example.com", role: "Member", avatar: "PJ", color: "#4F69F2", pending: true },
+  { name: "Sarah Chen", email: "sarah.chen@example.com", role: "Member", avatar: "SC", color: "#17CB8D" },
+];
+
+const creditData = [
+  { day: "Mar 24", amount: 120 },
+  { day: "Mar 25", amount: 380 },
+  { day: "Mar 26", amount: 45 },
+  { day: "Mar 27", amount: 0 },
+  { day: "Mar 28", amount: 0 },
+  { day: "Mar 29", amount: 0 },
+  { day: "Mar 30", amount: 890 },
+];
+
+const _dragHandleActive = { current: false };
+
+function WidgetShell({ title, icon: Icon, onRemove, children, action }: {
+  title: string;
+  icon: React.ComponentType<{ weight: string; size: number }>;
+  onRemove: () => void;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
   return (
-    <div className="mx-auto flex w-full gap-6" style={{ maxWidth: 1200 }}>
+    <div className="group/widget relative flex min-w-0 flex-1 flex-col rounded-2xl px-6 py-4" style={{ background: "#1a1a1a" }}>
+      <div className="absolute right-2 top-2 flex items-center gap-0.5 opacity-0 transition-opacity group-hover/widget:opacity-100">
+        <div
+          className="drag-handle flex size-6 cursor-grab items-center justify-center rounded-md transition-colors hover:bg-white/10 active:cursor-grabbing"
+          style={{ color: "#555" }}
+          onMouseDown={() => { _dragHandleActive.current = true; }}
+          onMouseUp={() => { _dragHandleActive.current = false; }}
+        >
+          <DotsSixVertical weight="bold" size={14} />
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors hover:bg-white/10"
+          style={{ color: "#555" }}
+          aria-label={`Remove ${title} widget`}
+        >
+          <X weight="regular" size={12} />
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 pb-4">
+        <Icon weight="regular" size={14} style={{ color: "#737373" }} />
+        <span className="text-xs font-medium leading-[1.6]" style={{ color: "#f5f5f5" }}>{title}</span>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-4">
+        {children}
+      </div>
+
+      {action && (
+        <div className="flex justify-end pt-3">
+          {action}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProjectsWidget({ onRemove }: { onRemove: () => void }) {
+  const newProjectModal = useNewProjectModal();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  return (
+    <>
       <BusinessUpgradeModal isOpen={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
-      {/* Projects */}
-      <section
-        className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
-        style={{ background: "#1a1a1a" }}
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="flex-1 text-xs font-medium leading-[1.6]" style={{ color: "#f5f5f5" }}>Projects</span>
-          <button
-            type="button"
-            onClick={() => newProjectModal?.open()}
-            className="flex size-6 items-center justify-center rounded-md"
-            style={{ background: "rgba(115,115,115,0.05)", color: "#f5f5f5" }}
-            aria-label="New project"
-          >
+      <WidgetShell
+        title="Projects"
+        icon={FolderSimple}
+        onRemove={onRemove}
+        action={
+          <button type="button" onClick={() => newProjectModal?.open()} className="flex size-6 items-center justify-center rounded-md" style={{ background: "rgba(115,115,115,0.05)", color: "#f5f5f5" }} aria-label="New project">
             <Plus weight="regular" size={12} />
           </button>
-        </div>
+        }
+      >
         {projects.slice(0, 3).map((p) => (
           <ListItem
             key={p.name}
@@ -456,67 +533,342 @@ function RecentWorkTab() {
             onClick={p.isTeam ? (e) => { e.preventDefault(); setUpgradeModalOpen(true); } : undefined}
           />
         ))}
-        <Link href="/projects/all-projects" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>
-          View all
-        </Link>
-      </section>
+        <Link href="/projects/all-projects" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>View all</Link>
+      </WidgetShell>
+    </>
+  );
+}
 
-      {/* Spaces */}
-      <section
-        className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
-        style={{ background: "#1a1a1a" }}
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="flex-1 text-xs font-medium leading-[1.6]" style={{ color: "#f5f5f5" }}>Spaces</span>
-          <button
-            type="button"
-            onClick={() => router.push("/spaces/new")}
-            className="flex size-6 items-center justify-center rounded-md"
-            style={{ background: "rgba(115,115,115,0.05)", color: "#f5f5f5" }}
-            aria-label="New space"
-          >
-            <Plus weight="regular" size={12} />
-          </button>
-        </div>
-        {sortedSpaces.slice(0, 3).map((space) => (
-          <ListItem
-            key={space.id}
-            href="/spaces"
-            thumb={space.thumbnails[0]}
-            name={space.name}
-            date={space.editedAt}
-            isTeam
-            teamMembers={defaultTeamMembers}
-          />
-        ))}
-        <Link href="/spaces" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>
-          View all
-        </Link>
-      </section>
+function SpacesWidget({ onRemove }: { onRemove: () => void }) {
+  const router = useRouter();
+  const sortedSpaces = [...allSpaces].sort((a, b) => parseDaysAgo(a.editedAt) - parseDaysAgo(b.editedAt));
+  const defaultTeamMembers = [
+    { initials: "J", color: "#4F69F2" },
+    { initials: "M", color: "#8566DC" },
+    { initials: "A", color: "#17CB8D" },
+    { initials: "S", color: "#FF58AE" },
+  ];
+  return (
+    <WidgetShell
+      title="Spaces"
+      icon={Layout}
+      onRemove={onRemove}
+      action={
+        <button type="button" onClick={() => router.push("/spaces/new")} className="flex size-6 items-center justify-center rounded-md" style={{ background: "rgba(115,115,115,0.05)", color: "#f5f5f5" }} aria-label="New space">
+          <Plus weight="regular" size={12} />
+        </button>
+      }
+    >
+      {sortedSpaces.slice(0, 3).map((space, i) => (
+        <ListItem key={space.id} href="/spaces" thumb={space.thumbnails[0]} name={space.name} date={space.editedAt} isTeam={i === 0} teamMembers={i === 0 ? defaultTeamMembers : undefined} />
+      ))}
+      <Link href="/spaces" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>View all</Link>
+    </WidgetShell>
+  );
+}
 
-      {/* Assets */}
-      <section
-        className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl px-6 py-4"
-        style={{ background: "#1a1a1a" }}
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="flex-1 text-xs font-medium leading-[1.6]" style={{ color: "#f5f5f5" }}>Assets</span>
-          <span className="size-6" />
-        </div>
-        {recentAssets.map((asset, i) => (
-          <ListItem
-            key={i}
-            href="/projects/all-assets"
-            thumb={asset.src}
-            name={asset.projectName || "Untitled asset"}
-            date="Yesterday"
-            typeIcon="image"
-          />
+function AssetsWidget({ onRemove }: { onRemove: () => void }) {
+  const recentAssets = getProjectAssets("").slice(0, 3);
+  return (
+    <WidgetShell title="Assets" icon={Image} onRemove={onRemove}>
+      {recentAssets.map((asset, i) => (
+        <ListItem key={i} href="/projects/all-assets" thumb={asset.src} name={asset.projectName || "Untitled asset"} date="Yesterday" typeIcon="image" />
+      ))}
+      <Link href="/projects/all-assets" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>View all</Link>
+    </WidgetShell>
+  );
+}
+
+function FavoritesWidget({ onRemove }: { onRemove: () => void }) {
+  const favSpaces = allSpaces.filter(s => s.isFavorite).slice(0, 2);
+  return (
+    <WidgetShell title="Favorites" icon={Heart} onRemove={onRemove}>
+      <div className="flex flex-col gap-3">
+        {favSpaces.map((space) => (
+          <Link key={space.id} href="/projects/favorites" className="flex items-center gap-3 rounded-lg transition-colors hover:bg-white/5 -mx-1 px-1 py-1">
+            <div className="size-10 shrink-0 overflow-hidden rounded-lg" style={{ background: "#424242" }}>
+              <NextImage src={space.thumbnails[0]} alt={space.name} width={40} height={40} unoptimized className="size-full object-cover" />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-sm leading-[1.4]" style={{ color: "#f5f5f5" }}>{space.name}</span>
+              <span className="text-[11px]" style={{ color: "#737373" }}>{space.editedAt}</span>
+            </div>
+            <Heart weight="fill" size={14} style={{ color: "#e8627c" }} className="shrink-0" />
+          </Link>
         ))}
-        <Link href="/projects/all-assets" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>
-          View all
-        </Link>
-      </section>
+        {favoriteAssets.slice(0, 3).map((asset, i) => (
+          <Link key={i} href="/projects/favorites" className="flex items-center gap-3 rounded-lg transition-colors hover:bg-white/5 -mx-1 px-1 py-1">
+            <div className="size-10 shrink-0 overflow-hidden rounded-lg" style={{ background: "#424242" }}>
+              <NextImage src={asset.src} alt={asset.name} width={40} height={40} unoptimized className="size-full object-cover" />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-sm leading-[1.4]" style={{ color: "#f5f5f5" }}>{asset.name}</span>
+              <span className="text-[11px]" style={{ color: "#737373" }}>15 days ago</span>
+            </div>
+            <Heart weight="fill" size={14} style={{ color: "#e8627c" }} className="shrink-0" />
+          </Link>
+        ))}
+      </div>
+      <Link href="/projects/favorites" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>View all</Link>
+    </WidgetShell>
+  );
+}
+
+function CommentsWidget({ onRemove }: { onRemove: () => void }) {
+  return (
+    <WidgetShell title="Comments" icon={ChatCircle} onRemove={onRemove}>
+      <div className="flex flex-col gap-1">
+        {mockNotifications.map((n, i) => (
+          <div key={i} className="flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 -mx-2">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white" style={{ background: "#8566DC" }}>
+              {n.avatar}
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-[12px] font-semibold" style={{ color: "#f5f5f5" }}>{n.user}</span>
+                <span className="shrink-0 text-[11px]" style={{ color: "#666" }}>{n.time}</span>
+                {n.unread && <div className="size-1.5 shrink-0 rounded-full" style={{ background: "#4F69F2" }} />}
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="truncate text-[11px] font-medium" style={{ color: "#aaa" }}>{n.action}</span>
+                <span className="shrink-0 truncate rounded bg-white/5 px-1.5 py-0.5 text-[10px]" style={{ color: "#ccc" }}>{n.target}</span>
+              </div>
+              <span className="truncate text-[11px]" style={{ color: "#666" }}>{n.message}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </WidgetShell>
+  );
+}
+
+function CreditsWidget({ onRemove }: { onRemove: () => void }) {
+  const maxAmount = Math.max(...creditData.map(d => d.amount), 1);
+  const totalUsed = creditData.reduce((s, d) => s + d.amount, 0);
+  const totalCredits = 1000000;
+  const pct = ((totalUsed / totalCredits) * 100).toFixed(1);
+  return (
+    <WidgetShell title="Credit Usage" icon={ChartBar} onRemove={onRemove}>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1.5">
+          <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: "#333" }}>
+            <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg, #f59e0b, #f97316)" }} />
+          </div>
+          <div className="flex items-center justify-between text-[11px]" style={{ color: "#888" }}>
+            <span>{pct}% used</span>
+            <span>{totalUsed.toLocaleString()} / {(totalCredits / 1000).toFixed(0)}K</span>
+          </div>
+        </div>
+        <div className="flex h-[80px] items-end gap-1">
+          {creditData.map((d, i) => (
+            <div key={i} className="flex flex-1 flex-col items-center gap-1">
+              <div
+                className="w-full rounded-sm transition-all"
+                style={{
+                  height: d.amount > 0 ? Math.max(4, (d.amount / maxAmount) * 64) : 0,
+                  background: d.amount > 0 ? "#4F69F2" : "transparent",
+                }}
+              />
+              <span className="text-[8px]" style={{ color: "#666" }}>{d.day.split(" ")[1]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <Link href="/credits" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>View details</Link>
+    </WidgetShell>
+  );
+}
+
+function PeopleWidget({ onRemove }: { onRemove: () => void }) {
+  return (
+    <WidgetShell title="People" icon={UsersThree} onRemove={onRemove}>
+      <div className="flex flex-col gap-1">
+        {mockMembers.map((m) => (
+          <div key={m.email} className="flex items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-white/5 -mx-1.5">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white" style={{ background: m.color }}>
+              {m.avatar}
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-[12px] font-medium" style={{ color: "#f5f5f5" }}>{m.name}</span>
+                {m.pending && (
+                  <span className="shrink-0 rounded bg-blue-500/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase" style={{ color: "#60a5fa" }}>Pending</span>
+                )}
+              </div>
+              <span className="truncate text-[11px]" style={{ color: "#666" }}>{m.email}</span>
+            </div>
+            <span className="shrink-0 text-[11px] font-medium" style={{ color: "#888" }}>{m.role}</span>
+          </div>
+        ))}
+      </div>
+      <Link href="/people" className="text-xs font-medium leading-[1.6] transition-colors hover:opacity-70" style={{ color: "#737373" }}>Manage team</Link>
+    </WidgetShell>
+  );
+}
+
+const WIDGET_COMPONENTS: Record<WidgetId, React.ComponentType<{ onRemove: () => void }>> = {
+  projects: ProjectsWidget,
+  spaces: SpacesWidget,
+  assets: AssetsWidget,
+  favorites: FavoritesWidget,
+  comments: CommentsWidget,
+  credits: CreditsWidget,
+  people: PeopleWidget,
+};
+
+function AddWidgetButton({ available, onAdd }: { available: WidgetId[]; onAdd: (id: WidgetId) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => available.length > 0 && setOpen(!open)}
+        className="flex h-7 cursor-pointer items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-colors hover:bg-white/5"
+        style={{ color: "#999" }}
+      >
+        <Plus weight="bold" size={12} />
+        Add widget
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 top-full z-50 mt-1.5 w-52 overflow-hidden rounded-xl border p-1.5"
+          style={{ background: "#222", borderColor: "rgba(255,255,255,0.08)", boxShadow: "0 12px 32px rgba(0,0,0,0.5)" }}
+        >
+          {available.map((id) => {
+            const meta = WIDGET_META[id];
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => { onAdd(id); setOpen(false); }}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-white/5"
+              >
+                <meta.icon weight="regular" size={16} style={{ color: "#999" }} />
+                <span className="text-[13px] font-medium" style={{ color: "#e5e5e5" }}>{meta.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RecentWorkTab() {
+  const [activeWidgets, setActiveWidgets] = useState<WidgetId[]>(DEFAULT_WIDGETS);
+  const [draggedId, setDraggedId] = useState<WidgetId | null>(null);
+  const [dragOverId, setDragOverId] = useState<WidgetId | null>(null);
+
+  const removeWidget = useCallback((id: WidgetId) => {
+    setActiveWidgets(prev => prev.filter(w => w !== id));
+  }, []);
+
+  const addWidget = useCallback((id: WidgetId) => {
+    setActiveWidgets(prev => {
+      if (prev.includes(id)) return prev;
+      return [...prev, id];
+    });
+  }, []);
+
+  const handleDragStart = useCallback((e: React.DragEvent, id: WidgetId) => {
+    setDraggedId(id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, id: WidgetId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverId(id);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, targetId: WidgetId) => {
+    e.preventDefault();
+    const sourceId = e.dataTransfer.getData("text/plain") as WidgetId;
+    if (sourceId && sourceId !== targetId) {
+      setActiveWidgets(prev => {
+        const next = [...prev];
+        const fromIdx = next.indexOf(sourceId);
+        const toIdx = next.indexOf(targetId);
+        if (fromIdx === -1 || toIdx === -1) return prev;
+        next.splice(fromIdx, 1);
+        next.splice(toIdx, 0, sourceId);
+        return next;
+      });
+    }
+    setDraggedId(null);
+    setDragOverId(null);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedId(null);
+    setDragOverId(null);
+  }, []);
+
+  const availableToAdd = [...EXTRA_WIDGETS, ...DEFAULT_WIDGETS].filter(id => !activeWidgets.includes(id));
+
+  const rows: (WidgetId | "empty")[][] = [];
+  for (let i = 0; i < activeWidgets.length; i += 3) {
+    const row: (WidgetId | "empty")[] = [...activeWidgets.slice(i, i + 3)];
+    while (row.length < 3) row.push("empty");
+    rows.push(row);
+  }
+  if (rows.length === 0) rows.push(["empty", "empty", "empty"]);
+
+  return (
+    <div className="mx-auto flex w-full flex-col gap-4" style={{ maxWidth: 1200 }}>
+      {availableToAdd.length > 0 && (
+        <div className="flex justify-end">
+          <AddWidgetButton available={availableToAdd} onAdd={addWidget} />
+        </div>
+      )}
+      <div className="flex flex-col gap-6">
+        {rows.map((row, ri) => (
+          <div key={ri} className="flex w-full gap-6">
+            {row.map((slot, ci) => {
+              if (slot === "empty") {
+                return <div key={`empty-${ri}-${ci}`} className="min-w-0 flex-1" />;
+              }
+              const Comp = WIDGET_COMPONENTS[slot];
+              const isOver = dragOverId === slot && draggedId !== slot;
+              return (
+                <div
+                  key={slot}
+                  className="flex min-w-0 flex-1 rounded-2xl transition-all"
+                  style={{
+                    opacity: draggedId === slot ? 0.4 : 1,
+                    outline: isOver ? "2px solid rgba(79,105,242,0.5)" : "2px solid transparent",
+                    outlineOffset: -2,
+                  }}
+                  draggable
+                  onDragStart={(e) => {
+                    if (!_dragHandleActive.current) { e.preventDefault(); return; }
+                    handleDragStart(e, slot);
+                  }}
+                  onDragOver={(e) => handleDragOver(e, slot)}
+                  onDrop={(e) => handleDrop(e, slot)}
+                  onDragEnd={handleDragEnd}
+                  onDragLeave={() => { if (dragOverId === slot) setDragOverId(null); }}
+                >
+                  <Comp onRemove={() => removeWidget(slot)} />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -537,11 +889,6 @@ export default function GetStartedPage() {
   const [showAllTools, setShowAllTools] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const heroScroll = useHorizontalScroll();
-  const mainScrollRef = useRef<HTMLDivElement>(null);
-  const topSectionRef = useRef<HTMLDivElement>(null);
-  const [topFade, setTopFade] = useState(1);
-  const [topSectionHeight, setTopSectionHeight] = useState(0);
-
   const updateSelectorPos = useCallback(() => {
     if (modelBtnTriggerRef.current) {
       const rect = modelBtnTriggerRef.current.getBoundingClientRect();
@@ -559,23 +906,6 @@ export default function GetStartedPage() {
     window.addEventListener("resize", updateSelectorPos);
     return () => window.removeEventListener("resize", updateSelectorPos);
   }, [modelSelectorOpen, updateSelectorPos]);
-
-  useEffect(() => {
-    const el = topSectionRef.current;
-    if (!el) return;
-    setTopSectionHeight(el.offsetHeight);
-    const ro = new ResizeObserver(() => setTopSectionHeight(el.offsetHeight));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const handleMainScroll = useCallback(() => {
-    const scrollEl = mainScrollRef.current;
-    if (!scrollEl || !topSectionHeight) return;
-    const scrollY = scrollEl.scrollTop;
-    const fade = Math.max(0, 1 - scrollY / (topSectionHeight * 0.6));
-    setTopFade(fade);
-  }, [topSectionHeight]);
 
   const { colors: paletteColors, surfaceColors: sc } = usePalette();
   const purpleSolid = paletteColors.spaces.bg;
@@ -628,24 +958,10 @@ export default function GetStartedPage() {
         </div>
       </header>
 
-      <div className="relative min-h-0 flex-1 px-1 pb-1">
-        <div
-          ref={topSectionRef}
-          className="absolute inset-x-1 top-0 px-6"
-          style={{
-            opacity: topFade,
-            transform: `scale(${0.97 + 0.03 * topFade})`,
-            transformOrigin: "top center",
-            filter: `blur(${(1 - topFade) * 8}px)`,
-          }}
-          onWheel={(e) => {
-            if (mainScrollRef.current) {
-              mainScrollRef.current.scrollTop += e.deltaY;
-            }
-          }}
-        >
+      <div className="min-h-0 flex-1 overflow-y-auto px-1 pb-1">
+        <div className="flex flex-col gap-10 px-6 py-4">
           {/* Chat Box */}
-          <div className="mx-auto flex w-full flex-col items-center gap-6 pt-10" style={{ maxWidth: 1200 }}>
+          <div className="mx-auto flex w-full flex-col items-center gap-6 pt-6" style={{ maxWidth: 1200 }}>
             <h1
               className="text-center tracking-[-0.32px]"
               style={{ fontFamily: klarheit.style.fontFamily, fontSize: 32, lineHeight: 1.375, color: "#f5f5f5" }}
@@ -668,7 +984,7 @@ export default function GetStartedPage() {
           </div>
 
           {/* Tools row */}
-          <div className="mx-auto flex w-full flex-col items-center gap-4 pt-10" style={{ maxWidth: 1200 }}>
+          <div className="mx-auto flex w-full flex-col items-center gap-4" style={{ maxWidth: 1200 }}>
             <div className="flex w-full gap-4">
               {[
                 { label: "Spaces", icon: "/icons/tool-spaces.svg", desc: "Build creative workflows on an infinite canvas", bg: "rgba(192,129,222,0.1)", href: "/spaces", openPanel: false },
@@ -709,19 +1025,6 @@ export default function GetStartedPage() {
               <CaretRight weight="bold" size={14} />
             </button>
           </div>
-        </div>
-
-        <div
-          ref={mainScrollRef}
-          onScroll={handleMainScroll}
-          className="relative z-10 h-full overflow-y-auto rounded-2xl pointer-events-none"
-          style={{ opacity: topSectionHeight ? 1 : 0 }}
-        >
-          <div style={{ height: topSectionHeight }} />
-          <div
-            className="pointer-events-auto flex flex-col gap-10 px-6 py-4"
-            style={{ background: "#161616", minHeight: "100%" }}
-          >
           {/* Projects / Spaces / Assets — 3 columns */}
           <RecentWorkTab />
 
@@ -919,11 +1222,8 @@ export default function GetStartedPage() {
           )}
 
           <div className="h-6" />
-        </div>
-        </div>
-      </div>
 
-      {modelSelectorOpen && (
+          {modelSelectorOpen && (
         <>
           <div className="fixed inset-0 z-[999]" onClick={() => setModelSelectorOpen(false)} />
           <div
@@ -985,6 +1285,8 @@ export default function GetStartedPage() {
           </div>
         </>
       )}
+        </div>
+      </div>
     </main>
   );
 }

@@ -84,10 +84,10 @@ export function BusinessUpgradeModal({ isOpen, onClose }: BusinessUpgradeModalPr
           {/* Floating avatars */}
           <div className="relative flex items-center">
             {[
-              { letter: "A", bg: "#8b5cf6", x: -52, y: -8 },
-              { letter: "M", bg: "#3b82f6", x: -20, y: 12 },
-              { letter: "J", bg: "#ec4899", x: 12, y: -14 },
-              { letter: "S", bg: "#22c55e", x: 44, y: 6 },
+              { letter: "A", bg: "#4F69F2", x: -52, y: -8 },
+              { letter: "M", bg: "#8566DC", x: -20, y: 12 },
+              { letter: "J", bg: "#FF58AE", x: 12, y: -14 },
+              { letter: "S", bg: "#17CB8D", x: 44, y: 6 },
             ].map((a, i) => (
               <div
                 key={i}

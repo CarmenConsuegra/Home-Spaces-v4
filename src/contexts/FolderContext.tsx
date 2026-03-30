@@ -44,8 +44,8 @@ const initialProjects: Project[] = [
     isTeam: true,
     owner: "Martin LeBlanc",
     teamMembers: [
-      { initials: "M", color: "#8b5cf6" },
-      { initials: "A", color: "#22c55e" },
+      { initials: "M", color: "#4F69F2" },
+      { initials: "A", color: "#17CB8D" },
     ],
     folders: [
       { name: "Hero images", assetCount: 3 },
@@ -61,8 +61,8 @@ const initialProjects: Project[] = [
     isTeam: true,
     owner: "Adrián Fernández",
     teamMembers: [
-      { initials: "J", color: "#22c55e" },
-      { initials: "M", color: "#22c55e" },
+      { initials: "J", color: "#8566DC" },
+      { initials: "M", color: "#EDBD44" },
     ],
     folders: [
       { name: "Retouched", assetCount: 3 },
